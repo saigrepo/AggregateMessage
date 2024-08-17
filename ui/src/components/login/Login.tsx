@@ -5,7 +5,7 @@ function Login() {
         emailId: "", userPassword: ""
     });
 
-    const handleChange = (event) => {
+    const handleChange = (event: any) => {
         const {id, value} = event.target;
         setForm(prevState => ({
             ...prevState, [id]: value
