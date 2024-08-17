@@ -1,2 +1,6 @@
 /ui/node_modules/
 /api/.gradle
+/.idea
+/api/.idea
+/api/build
+/api/build/tmp
