@@ -6,6 +6,8 @@ import com.aggregatemesage.api.dtos.RegisterUserDto;
 import com.aggregatemesage.api.model.User;
 import com.aggregatemesage.api.service.AuthenticationService;
 import com.aggregatemesage.api.service.JwtService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +28,7 @@ public class AuthenticationController {
     public ResponseEntity<User> register(@RequestBody RegisterUserDto registerUserDto) {
         User registeredUser = authenticationService.signup(registerUserDto);
 
-        return ResponseEntity.ok(registeredUser);
+        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
@@ -35,9 +37,7 @@ public class AuthenticationController {
 
         String jwtToken = jwtService.generateToken(authenticatedUser);
 
-        LoginResponse loginResponse = new LoginResponse();
-        loginResponse.setToken(jwtToken);
-        loginResponse.setExpiresIn(jwtService.getExpirationTime());
+        LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime(), authenticatedUser.getEmailId(), authenticatedUser.getId(), authenticatedUser.getProfileCreated());
 
         return ResponseEntity.ok(loginResponse);
     }

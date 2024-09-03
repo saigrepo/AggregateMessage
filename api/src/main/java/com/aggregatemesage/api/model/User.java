@@ -28,6 +28,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column()
+    private Boolean profileCreated;
+
     @CreationTimestamp
     @Column(nullable = false)
     private String createdDate;
