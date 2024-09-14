@@ -21,7 +21,7 @@ public class SecurityConfiguration {
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    final String[] WHITE_LIST_URL = {"/api/v1/auth/**", "/websocket/**"};
+    final String[] WHITE_LIST_URL = {"/api/v1/auth/**", "/socket.io/**"};
     public SecurityConfiguration(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             AuthenticationProvider authenticationProvider

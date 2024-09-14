@@ -16,22 +16,18 @@ const ConversationList= ({conversations, onSelectConversation, selectedConvId, d
             </div>
         </div>
         <div className="p-2">
-            {/*<div className={`p-2 rounded-lg mb-2 ${darkMode ? 'bg-gray-800' : 'bg-polo-blue-100'}`}>*/}
-            {/*    <h2 className={`font-medium text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Archived Conversations</h2>*/}
-            {/*    <p className="text-xs text-gray-500">2 conversations</p>*/}
-            {/*</div>*/}
             {conversations.map((conv) => (
-                <div key={conv.id} className={`flex items-center p-2 hover:bg-polo-blue-100 rounded-lg cursor-pointer ${selectedConvId == conv.id ? 'bg-gray-200' : ''}`} onClick={() => onSelectConversation(conv.id)}>
+                <div key={conv?.id} className={`flex items-center p-2 hover:bg-polo-blue-100 rounded-lg cursor-pointer ${selectedConvId == conv?.id ? 'bg-gray-200' : ''}`} onClick={() => onSelectConversation(conv.id)}>
                     {/*<img src={conv.avatar} alt={conv.name} className="w-10 h-10 rounded-full mr-3"/>*/}
                     <div className="flex-1">
-                        <h3 className="font-medium">{conv.name}</h3>
-                        <p className="text-sm text-gray-500 truncate">{conv.lastMessage}</p>
+                        <h3 className="font-medium">{conv?.name}</h3>
+                        <p className="text-sm text-gray-500 truncate">{conv?.lastMessage}</p>
                     </div>
-                    <div className="text-xs text-gray-500">{conv.time}</div>
-                    {conv.unreadCount && (
+                    <div className="text-xs text-gray-500">{conv?.time}</div>
+                    {conv?.unreadCount && (
                         <div
                             className="ml-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                            {conv.unreadCount}
+                            {conv?.unreadCount}
                         </div>
                     )}
                 </div>

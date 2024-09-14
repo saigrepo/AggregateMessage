@@ -8,6 +8,7 @@ import apiClient from "./lib/api-client.ts";
 import {CURRENT_USER_ROUTE} from "./utils/Constants.ts";
 import Profile from "./pages/profile/Profile.tsx";
 import {SocketProvider} from "./context/socket.tsx";
+import CreateChatRoom from "./pages/messages/chat-container/CreateChatRoom.tsx";
 
 function App() {
     const { userInfo, setUserInfo } = useAppStore();
@@ -53,7 +54,7 @@ function App() {
     };
 
   return (
-    <SocketProvider>
+    <>
     <BrowserRouter>
         <Routes>
             <Route path="/auth" element={
@@ -65,10 +66,13 @@ function App() {
             <Route path="/profile" element={
                 <PrivateRoute><Profile/></PrivateRoute>
             } />
+            <Route path="/createChatRoom" element={
+                <PrivateRoute><CreateChatRoom/></PrivateRoute>
+            } />
             <Route path="*" element={<Navigate to="/auth"/>} />
         </Routes>
     </BrowserRouter>
-    </SocketProvider>
+    </>
   )
 }
 

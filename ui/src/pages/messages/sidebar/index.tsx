@@ -1,7 +1,7 @@
 import {Search, Edit, Archive, Moon, Settings, Paperclip, Smile, Mic, Send, Sun} from 'lucide-react';
 import SearchContacts from "../chat-container/SearchContacts.tsx";
 
-export default function Sidebar({userInfo, darkMode, toggleDarkMode}) {
+export default function Sidebar({userInfo, darkMode, toggleDarkMode, onContactsSelected, selectedContacts, setSelectedContacts }) {
         const getInitials = () => {
                 return (userInfo.firstName.charAt(0) + userInfo.lastName.charAt(0)).toUpperCase();
         }
@@ -14,7 +14,7 @@ export default function Sidebar({userInfo, darkMode, toggleDarkMode}) {
                     <div className="w-10 h-10 rounded-full flex items-center justify-center border-2"
                          style={{backgroundColor: userInfo.userColor}}>{getInitials()}</div>
                     <div className="w-10 h-10 rounded-full flex items-center justify-center">
-                        <SearchContacts />
+                        <SearchContacts onContactsSelected={onContactsSelected} selectedContacts={selectedContacts} setSelectedContacts={setSelectedContacts}/>
                     </div>
                     {/*<Archive className="text-gray-500" />*/}
                 </div>

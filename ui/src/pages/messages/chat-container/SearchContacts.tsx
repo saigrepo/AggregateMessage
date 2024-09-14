@@ -16,14 +16,19 @@ interface Contact {
     name: string;
 }
 
-function SearchContacts({ onContactsSelected }) {
+function SearchContacts({ onContactsSelected, selectedContacts, setSelectedContacts }) {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [contacts, setContacts] = useState<Contact[]>([]);
-    const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(false);
+
+    const handleSave = () => {
+        onContactsSelected(selectedContacts);
+        setIsOpen(false);
+        setSelectedContacts([]);  // Reset selected contacts after creating a chat
+    };
 
     const fetchContacts = useCallback(async (searchQuery: string, pageNumber: number) => {
         try {
@@ -81,12 +86,6 @@ function SearchContacts({ onContactsSelected }) {
                 ? prev.filter(id => id !== contactId)
                 : [...prev, contactId]
         );
-    };
-
-    // Save selected contacts
-    const handleSave = () => {
-        onContactsSelected(selectedContacts);
-        setIsOpen(false);
     };
 
     return (

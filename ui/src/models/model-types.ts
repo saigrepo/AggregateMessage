@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export interface loginForm {
     loginEmailId: string;
     loginPassword: string;
@@ -18,11 +20,12 @@ export interface Message {
 }
 
 export interface Conversation  {
-    id: string;
+    id: uuidv4;
     name: string;
     avatar: string;
     lastMessage: string;
     time: string;
     unreadCount?: number;
     messages: Message[];
+    participants?: string[];
 }
