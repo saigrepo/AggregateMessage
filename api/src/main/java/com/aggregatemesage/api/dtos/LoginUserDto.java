@@ -1,4 +1,4 @@
-package com.aggregatemesage.api;
+package com.aggregatemesage.api.dtos;
 
 import lombok.Getter;
 import lombok.Setter;

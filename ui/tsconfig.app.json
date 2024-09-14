@@ -18,7 +18,14 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "baseUrl": ".",
+  "paths": {
+    "@/*": [
+      "./src/*"
+    ]
+  }
 }
