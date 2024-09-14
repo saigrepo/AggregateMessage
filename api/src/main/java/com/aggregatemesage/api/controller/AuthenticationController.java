@@ -1,13 +1,12 @@
 package com.aggregatemesage.api.controller;
 
-import com.aggregatemesage.api.LoginUserDto;
 import com.aggregatemesage.api.dtos.LoginResponse;
+import com.aggregatemesage.api.dtos.LoginUserDto;
 import com.aggregatemesage.api.dtos.RegisterUserDto;
 import com.aggregatemesage.api.model.User;
 import com.aggregatemesage.api.service.AuthenticationService;
 import com.aggregatemesage.api.service.JwtService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +36,7 @@ public class AuthenticationController {
 
         String jwtToken = jwtService.generateToken(authenticatedUser);
 
-        LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime(), authenticatedUser.getEmailId(), authenticatedUser.getId(), authenticatedUser.getProfileCreated());
+        LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime(),authenticatedUser.getId(), authenticatedUser.getEmailId(), authenticatedUser.getProfileCreated(), authenticatedUser.getProfileColor(), authenticatedUser.getFirstname(), authenticatedUser.getLastname());
 
         return ResponseEntity.ok(loginResponse);
     }

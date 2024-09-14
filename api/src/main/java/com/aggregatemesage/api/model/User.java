@@ -31,6 +31,15 @@ public class User implements UserDetails {
     @Column()
     private Boolean profileCreated;
 
+    @Column()
+    private String profileColor;
+
+    @Column()
+    private String firstname;
+
+    @Column()
+    private String lastname;
+
     @CreationTimestamp
     @Column(nullable = false)
     private String createdDate;

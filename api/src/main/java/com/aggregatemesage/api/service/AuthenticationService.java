@@ -1,10 +1,9 @@
 package com.aggregatemesage.api.service;
 
-import com.aggregatemesage.api.LoginUserDto;
+import com.aggregatemesage.api.dtos.LoginUserDto;
 import com.aggregatemesage.api.dtos.RegisterUserDto;
 import com.aggregatemesage.api.model.User;
 import com.aggregatemesage.api.repository.UserRepository;
-import org.apache.coyote.Response;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;

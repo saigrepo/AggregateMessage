@@ -4,3 +4,5 @@
 /api/.idea
 /api/build
 /api/build/tmp
+/api/build/classes
+/api/build/classes/

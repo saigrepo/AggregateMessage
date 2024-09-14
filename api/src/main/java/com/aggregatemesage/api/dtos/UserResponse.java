@@ -5,15 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginResponse {
-
-    private String token;
-
-    private long expiresIn;
+@Getter
+@Setter
+public class UserResponse {
 
     private Integer userId;
     private String userEmail;
@@ -21,8 +17,4 @@ public class LoginResponse {
     private String userColor;
     private String firstName;
     private String lastName;
-
-    public String getToken() {
-        return token;
-    }
 }
