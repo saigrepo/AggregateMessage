@@ -29,12 +29,16 @@ public class Conversation {
     @Column
     private String lastMessage;
 
-    @Column
-    private String time;
-
-    @OneToMany(mappedBy = "conversationId", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "conversationId", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<Message> messages;
 
-    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Contact> participants;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "conversation_participants", joinColumns = @JoinColumn(name = "conversation_id") )
+    @Column(name = "participant")
+    private List<String> participants;
+
+    @Column
+    private String createdAt;
+
+
 }

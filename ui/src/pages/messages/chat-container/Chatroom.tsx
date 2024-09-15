@@ -2,8 +2,11 @@ import React from 'react';
 import ChatHeader from "./ChatHeader.tsx";
 import ChatArea from "./ChatArea.tsx";
 import InputArea from "./InputArea.tsx";
+import {useAppStore} from "../../../slices";
 
 function Chatroom({ selectedConversation, messageList, messageInput, setMessageInput, sendMessage, darkMode, handleDeleteConv }) {
+
+    const {userInfo} = useAppStore();
 
     const getLastSeen = (conTime) => {
         const date = new Date(conTime);
@@ -18,10 +21,11 @@ function Chatroom({ selectedConversation, messageList, messageInput, setMessageI
         return `${Math.floor(diffMins / 1440)} day(s)`;
     }
 
+
     return (
         <div className={`flex flex-col flex-grow ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
             <ChatHeader name={selectedConversation.name} lastSeen={getLastSeen(selectedConversation?.time)} handleDelete={()=>handleDeleteConv(selectedConversation?.id)} />
-            <ChatArea messages={messageList} />
+            <ChatArea messages={messageList} messagedBy={userInfo.userId}/>
             <InputArea
                 messageInput={messageInput}
                 setMessageInput={setMessageInput}

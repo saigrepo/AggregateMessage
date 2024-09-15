@@ -16,7 +16,7 @@ export interface Message {
     sender: string;
     content: string;
     time: string;
-    isOwn?: boolean;
+    messagedBy?: string;
 }
 
 export interface Conversation  {

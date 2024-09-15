@@ -26,7 +26,7 @@ public class MessageService {
         List conList = conv.getMessages();
         conList.add(message);
         conv.setMessages(conList);
-        conv.setLastMessage(message.getMessage());
+        conv.setLastMessage(message.getContent());
         conversationRepository.save(conv);
         return messageRepository.save(message);
     }

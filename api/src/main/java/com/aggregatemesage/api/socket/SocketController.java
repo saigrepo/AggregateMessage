@@ -6,6 +6,8 @@ import com.aggregatemesage.api.socket.service.ConversationService;
 import com.aggregatemesage.api.socket.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,10 +37,16 @@ public class SocketController {
         return conversationService.getConversation(id);
     }
 
-    @GetMapping("/convs")
-    public List<Conversation> getConversations() {
-        List<Conversation> lst = conversationService.getAllConversations();
+    @GetMapping("/convs/{userId}")
+    public List<Conversation> getConversations(@PathVariable String userId) {
+        List<Conversation> lst = conversationService.getConversationsForUser(userId);
         return lst;
+    }
+
+    @PostMapping("/{conId}")
+    public ResponseEntity deleteConversation(@PathVariable UUID conId) {
+        conversationService.deleteConversationById(conId);
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 }
 

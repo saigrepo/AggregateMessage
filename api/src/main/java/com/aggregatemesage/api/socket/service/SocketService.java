@@ -14,40 +14,33 @@ public class SocketService {
 
     private final MessageService messageService;
 
-    public void sendSocketmessage(SocketIOClient senderClient, Message message, UUID room) {
-        for (
-                SocketIOClient client : senderClient.getNamespace().getRoomOperations(room.toString()).getClients()
-        ) {
-            if (!client.getSessionId().equals(senderClient.getSessionId())) {
-                client.sendEvent("read_message", message);
-            }
-        }
+    public void sendSocketMessage(SocketIOClient senderClient, Message message, UUID conversationId) {
+        senderClient.getNamespace().getRoomOperations(message.getConversationId().toString()).sendEvent("receive_message", message);
+
     }
 
     public void saveMessage(SocketIOClient senderClient, Message message) {
-
         Message storedMessage = messageService.saveMessage(
                 Message.builder()
+                        .messageId(UUID.randomUUID())
                         .messageType(MessageType.CLIENT)
-                        .message(message.getMessage())
+                        .content(message.getContent())
                         .conversationId(message.getConversationId())
-                        .username(message.getUsername())
+                        .sender(message.getSender())
                         .build()
         );
 
-        sendSocketmessage(senderClient, storedMessage, message.getConversationId());
-
+        sendSocketMessage(senderClient, storedMessage, message.getConversationId());
     }
 
     public void saveInfoMessage(SocketIOClient senderClient, String message, UUID room) {
         Message storedMessage = messageService.saveMessage(
                 Message.builder()
                         .messageType(MessageType.SERVER)
-                        .message(message)
+                        .content(message)
                         .conversationId(room)
                         .build()
         );
-
-        sendSocketmessage(senderClient, storedMessage, room);
+        sendSocketMessage(senderClient, storedMessage, room);
     }
 }

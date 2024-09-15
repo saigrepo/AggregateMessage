@@ -23,7 +23,7 @@ function SearchContacts({ onContactsSelected, selectedContacts, setSelectedConta
     const handleSave = () => {
         onContactsSelected(selectedContacts);
         setIsOpen(false);
-        // setSelectedContacts([]);  // Reset selected contacts after creating a chat
+        setSelectedContacts([]);
     };
 
     const fetchContacts = useCallback(async (searchQuery: string, pageNumber: number) => {

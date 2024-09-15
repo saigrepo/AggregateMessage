@@ -10,13 +10,19 @@ import Chatroom from "./chat-container/Chatroom.tsx";
 import apiClient from "../../lib/api-client.ts";
 import SearchContacts from "./chat-container/SearchContacts.tsx";
 import { v4 as uuidv4 } from 'uuid';
-import {HOST, SOCKET_HOST} from "../../utils/Constants.ts";
+import {
+    CREATE_CONVERSATION_ROUTE,
+    DELETE_CONVERSATION_ROUTE,
+    GET_CONVERSATIONS_ROUTE,
+    HOST,
+    SOCKET_HOST
+} from "../../utils/Constants.ts";
 
 function MessageComponent(props) {
     const { userInfo, setUserInfo, darkMode, toggleDarkMode } = useAppStore();
     const [selectedConversation, setSelectedConversation] = useState<Conversation>( null);
 
-    const { isConnected, socketResponse, sendData } = useSocket(selectedConversation?.id, userInfo.userId);
+    const { isConnected, socketResponse, sendData, socket } = useSocket(selectedConversation?.id, userInfo.userId);
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true); // Add this state
@@ -42,7 +48,7 @@ function MessageComponent(props) {
 
             setLoading(true);
             try {
-                const response = await apiClient.get(`${HOST}/api/v1/conversation/convs`);
+                const response = await apiClient.get(`${GET_CONVERSATIONS_ROUTE}/${userInfo.userId}`);
                 setConversations(response.data);
             } catch (error) {
                 console.error('Error fetching conversations:', error);
@@ -72,14 +78,14 @@ function MessageComponent(props) {
         if (messageInput !== "") {
             sendData({
                 message: messageInput,
-                room: selectedConversation?.id,
+                selectedConversationId: selectedConversation?.id,
             });
             addMessageToList({
-                id: Date.now().toString(), // Unique ID for the new message
+                id: uuidv4(),
                 sender: userInfo.userEmail,
                 content: messageInput,
                 time: new Date().toLocaleTimeString(),
-                isOwn: true,
+                messagedBy: userInfo.userId,
             });
             setMessageInput("");
         }
@@ -94,46 +100,84 @@ function MessageComponent(props) {
         ));
     };
 
+
+
     useEffect(() => {
         if (socketResponse && socketResponse.room === selectedConversation?.id) {
             addMessageToList({
-                id: Date.now().toString(),
+                id: uuidv4(),
                 sender: userInfo.userEmail,
                 content: socketResponse.message,
                 time: new Date().toLocaleTimeString(),
-                isOwn: false,
+                messagedBy: userInfo.userId,
             });
         }
     }, [socketResponse, selectedConversation]);
 
-    const createConversation = async () => {
-        const converHeading = (conversationName.length == 0) ? (selectedContacts.length > 1 ? selectedContacts[0].name: selectedContacts[0].name) : conversationName
+    const createConvHeading = (seleCon) => {
+        let gro = "New group";
+        seleCon.forEach(con => {
+            gro += " "+con.name.split(" ")[0]
+        })
+        return gro;
+    }
 
-        const response = await apiClient.post(`${HOST}/api/v1/conversation/create`, {
+    const createConversation = async () => {
+        const converHeading = (conversationName.length == 0) ? (selectedContacts.length > 1 ? createConvHeading(selectedContacts) : selectedContacts[0].name) : conversationName
+        const str = [userInfo.userId];
+        selectedContacts.forEach(se => {
+            str.push(se.id);
+        });
+
+        const response = await apiClient.post(CREATE_CONVERSATION_ROUTE, {
             id: uuidv4(),
             name: converHeading,
             avatar: '',
             lastMessage: '',
-            time: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             messages: [],
-            participants: selectedContacts, // Pass selected participants
+            participants: str, // Pass selected participants
         }, {withCredentials: true});
         const newConversation: Conversation = response.data;
         setConversations((prevState) => [...prevState, newConversation]);
         setSelectedConversation(newConversation);
+        setParticipants(str);
 
         console.log('Conversation created with participants:', participants);
     };
 
-    const handleDeleteConv = (convId) => {
-        const updatedConversations = conversations.filter(conv => conv.id !== convId);
-        setConversations(updatedConversations);
+    const handleDeleteConv = async (convId) => {
+        try {
+            const resp = await apiClient.post(`${DELETE_CONVERSATION_ROUTE}/${convId}`, {withCredentials: true});
+            if(resp.data){
+                const updatedConversations = conversations.filter(conv => conv.id !== convId);
+                setConversations(updatedConversations);
+                if(selectedConversation?.id == convId) {
+                    setSelectedConversation(null);
+                }
+                toast.success("Conversation deleted")
+            }
+        } catch (error) {
+            console.log("unable to delete the conversation", error);
+            toast.error("unable to delete the conversation")
 
-        // Optionally, reset the selected conversation if the deleted one was selected
-        if(selectedConversation?.id == convId) {
-            setSelectedConversation(null);
         }
     }
+
+    useEffect(() => {
+        if (selectedConversation) {
+            socket.emit('join_conversation', selectedConversation.id);
+
+            socket.on('read_message', (message) => {
+                console.log("rm", message);
+                setMessageList((prevMessages) => [...prevMessages, message]);
+            });
+
+            return () => {
+                socket.off('receive_message');
+            };
+        }
+    }, [selectedConversation]);
 
     return (
         <div className={`flex h-screen ${darkMode ? 'bg-background-dark' : 'bg-background-light'}`}>

@@ -18,20 +18,23 @@ public class Message {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID messageId;
 
     @Column
     @Enumerated(EnumType.STRING)
     private MessageType messageType;
 
     @Column
+    private String sender;
+
+    @Column
     private UUID conversationId;
 
     @Column
-    private String username;
+    private String content;
 
     @Column
-    private String message;
+    private String messagedBy;
 
     @Column
     @CreationTimestamp

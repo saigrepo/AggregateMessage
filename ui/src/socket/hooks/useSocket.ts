@@ -16,7 +16,7 @@ export const useSocket = (room, username) => {
 
     const sendData = useCallback((payload) => {
         socket.emit("send_message", {
-            room: room,
+            conversationId: payload.selectedConversationId,
             message: payload.message,
             username: username,
             messageType: "CLIENT"
@@ -26,7 +26,7 @@ export const useSocket = (room, username) => {
     useEffect(() => {
         const s = io(SOCKET_HOST, {
             transports: ['websocket'],
-            query: `username=${username}&room=${room}`,
+            query: `username=${username}&conversation=${room}`,
             forceNew: true, // Force a new connection
             upgrade: false, // Disable HTTP long-polling
             allowEIO3: true
@@ -41,6 +41,7 @@ export const useSocket = (room, username) => {
             console.error("SOCKET CONNECTION ERROR", error);
         });
         s.on("read_message", (res) => {
+            console.log("read_message", res);
             setSocketResponse({
                 room: res.room,
                 message: res.message,
@@ -55,5 +56,5 @@ export const useSocket = (room, username) => {
         };
     }, [room, username]);
 
-    return { isConnected, socketResponse, sendData };
+    return { isConnected, socketResponse, sendData, socket };
 }
