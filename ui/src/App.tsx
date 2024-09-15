@@ -1,14 +1,11 @@
-import Login from "./pages/auth/Auth.tsx";
-import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 import Auth from "./pages/auth/Auth.tsx";
+import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 import Message from "./pages/messages/Message.tsx";
 import {useAppStore} from "./slices";
 import {useEffect, useState} from "react";
 import apiClient from "./lib/api-client.ts";
 import {CURRENT_USER_ROUTE} from "./utils/Constants.ts";
 import Profile from "./pages/profile/Profile.tsx";
-import {SocketProvider} from "./context/socket.tsx";
-import CreateChatRoom from "./pages/messages/chat-container/CreateChatRoom.tsx";
 
 function App() {
     const { userInfo, setUserInfo } = useAppStore();
@@ -49,7 +46,7 @@ function App() {
 
     const AuthedRoute = ({ children})=> {
         const { userInfo } = useAppStore();
-        const authed = !!userInfo;
+        const authed = !!userInfo && !!localStorage.getItem("jwtToken");
         return authed ?  <Navigate to='/MessageComponent' /> : children;
     };
 
@@ -65,9 +62,6 @@ function App() {
             } />
             <Route path="/profile" element={
                 <PrivateRoute><Profile/></PrivateRoute>
-            } />
-            <Route path="/createChatRoom" element={
-                <PrivateRoute><CreateChatRoom/></PrivateRoute>
             } />
             <Route path="*" element={<Navigate to="/auth"/>} />
         </Routes>

@@ -2,8 +2,8 @@ import {useAppStore} from "../../slices";
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {toast} from "sonner";
-import {Conversation, Message} from "../../models/model-types.ts";
-import ConversationList from "./chat-container/ConversationList.tsx";
+import {Contact, Conversation, Message} from "../../models/model-types.ts";
+import Conversations from "./chat-container/Conversations.tsx";
 import Sidebar from "./sidebar";
 import {useSocket} from "../../socket/hooks/useSocket.ts";
 import Chatroom from "./chat-container/Chatroom.tsx";
@@ -13,8 +13,21 @@ import { v4 as uuidv4 } from 'uuid';
 import {HOST, SOCKET_HOST} from "../../utils/Constants.ts";
 
 function MessageComponent(props) {
-    const { userInfo, darkMode, toggleDarkMode } = useAppStore();
+    const { userInfo, setUserInfo, darkMode, toggleDarkMode } = useAppStore();
+    const [selectedConversation, setSelectedConversation] = useState<Conversation>( null);
+
+    const { isConnected, socketResponse, sendData } = useSocket(selectedConversation?.id, userInfo.userId);
     const navigate = useNavigate();
+
+    const [loading, setLoading] = useState(true); // Add this state
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [messageInput, setMessageInput] = useState("");
+    const [messageList, setMessageList] = useState<Message[]>( []);
+    const [participants, setParticipants] = useState<string[]>([]);
+    const [conversationName, setConversationName] = useState<string>('');
+    const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
+
+
 
     useEffect(() => {
         if (!userInfo.userProfileCreated) {
@@ -23,40 +36,37 @@ function MessageComponent(props) {
         }
     }, [userInfo, navigate]);
 
-    const converList: Conversation[] = [];
-
     useEffect(() => {
         const fetchConversations = async () => {
+            if (!isConnected) return;  // Wait until socket is connected
+
+            setLoading(true);
             try {
-                const response = await apiClient.get(`${HOST}/api/v1/conversation`);
+                const response = await apiClient.get(`${HOST}/api/v1/conversation/convs`);
                 setConversations(response.data);
             } catch (error) {
                 console.error('Error fetching conversations:', error);
                 toast.error("Failed to fetch conversations");
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchConversations();
-    }, []);
+        if (isConnected) {
+            fetchConversations();
+        }
+    }, [isConnected]);
 
-    const [conversations, setConversations] = useState<Conversation[]>(converList);
-    const [selectedConversation, setSelectedConversation] = useState<Conversation>( null);
-    const [messageInput, setMessageInput] = useState("");
-    const [messageList, setMessageList] = useState<Message[]>( []);
-    const [participants, setParticipants] = useState<string[]>([]);
-    const [conversationName, setConversationName] = useState<string>('');
 
     const handleSelectedConversation = (id: string) => {
-        const selected = conversations.find(conv => conv.id === id);
+        const selected = conversations.find(conv => conv?.id === id);
         if (selected) {
             setSelectedConversation(selected);
             setMessageList(selected.messages);
         }
     };
 
-    const { isConnected, socketResponse, sendData } = useSocket(selectedConversation?.id, userInfo.userId);
 
-    // Sending the message to the WebSocket server
     const sendMessage = (e: React.FormEvent) => {
         e.preventDefault();
         if (messageInput !== "") {
@@ -75,7 +85,6 @@ function MessageComponent(props) {
         }
     };
 
-    // Adding message to the chatroom UI
     const addMessageToList = (newMessage: Message) => {
         setMessageList((prevMessages) => [...prevMessages, newMessage]);
         setConversations((prevConversations) => prevConversations.map(conv =>
@@ -85,7 +94,6 @@ function MessageComponent(props) {
         ));
     };
 
-    // Fetching new messages from the socket response
     useEffect(() => {
         if (socketResponse && socketResponse.room === selectedConversation?.id) {
             addMessageToList({
@@ -98,58 +106,80 @@ function MessageComponent(props) {
         }
     }, [socketResponse, selectedConversation]);
 
-    // Create a new chat with selected contacts
     const createConversation = async () => {
-        const newConversation: Conversation = {
-            id: uuidv4(), // Generate UUID for the conversation
-            name: conversationName,
-            avatar: '', // Optionally handle avatar
+        const converHeading = (conversationName.length == 0) ? (selectedContacts.length > 1 ? selectedContacts[0].name: selectedContacts[0].name) : conversationName
+
+        const response = await apiClient.post(`${HOST}/api/v1/conversation/create`, {
+            id: uuidv4(),
+            name: converHeading,
+            avatar: '',
             lastMessage: '',
             time: new Date().toISOString(),
             messages: [],
             participants: selectedContacts, // Pass selected participants
-        };
-
-        // Send the conversation to the backend to create a room
-        await apiClient.post(`${HOST}/api/v1/conversation/create`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newConversation),
-        });
-
+        }, {withCredentials: true});
+        const newConversation: Conversation = response.data;
+        setConversations((prevState) => [...prevState, newConversation]);
         setSelectedConversation(newConversation);
 
         console.log('Conversation created with participants:', participants);
     };
-    const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
 
+    const handleDeleteConv = (convId) => {
+        const updatedConversations = conversations.filter(conv => conv.id !== convId);
+        setConversations(updatedConversations);
+
+        // Optionally, reset the selected conversation if the deleted one was selected
+        if(selectedConversation?.id == convId) {
+            setSelectedConversation(null);
+        }
+    }
 
     return (
         <div className={`flex h-screen ${darkMode ? 'bg-background-dark' : 'bg-background-light'}`}>
-            <Sidebar userInfo={userInfo} darkMode={darkMode} toggleDarkMode={() => toggleDarkMode(!darkMode)} onContactsSelected={createConversation}
-                     selectedContacts={selectedContacts} setSelectedContacts={setSelectedContacts}/>
-            <ConversationList
-                darkMode={darkMode}
-                conversations={conversations}
-                onSelectConversation={handleSelectedConversation}
-                selectedId={selectedConversation?.id}
-            />
-            { selectedConversation ?
-            <Chatroom
-                selectedConversation={selectedConversation}
-                messageList={messageList}
-                messageInput={messageInput}
-                setMessageInput={setMessageInput}
-                sendMessage={sendMessage}
-                darkMode={darkMode}
-            /> : (
-            <div className="flex-grow flex items-center justify-center">
-                <p>Select a conversation or start a new one</p>
-                <SearchContacts onContactsSelected={createConversation} selectedContacts={selectedContacts} setSelectedContacts={setSelectedContacts}/>
-            </div>
-            )
-            }
-
+            {loading ? (
+                <div className="flex items-center justify-center w-full h-full">
+                    <p>Loading conversations...</p> {/* You can replace this with a spinner */}
+                </div>
+            ) : (
+                <>
+                    <Sidebar
+                        userInfo={userInfo}
+                        setUserInfo={setUserInfo}
+                        darkMode={darkMode}
+                        toggleDarkMode={() => toggleDarkMode(!darkMode)}
+                        onContactsSelected={createConversation}
+                        selectedContacts={selectedContacts}
+                        setSelectedContacts={setSelectedContacts}
+                    />
+                    <Conversations
+                        darkMode={darkMode}
+                        conversations={conversations}
+                        onSelectConversation={handleSelectedConversation}
+                        selectedId={selectedConversation?.id}
+                    />
+                    {selectedConversation ? (
+                        <Chatroom
+                            selectedConversation={selectedConversation}
+                            messageList={messageList}
+                            messageInput={messageInput}
+                            setMessageInput={setMessageInput}
+                            sendMessage={sendMessage}
+                            darkMode={darkMode}
+                            handleDeleteConv={handleDeleteConv}
+                        />
+                    ) : (
+                        <div className="flex-grow flex items-center justify-center">
+                            <p>Select a conversation or start a new one</p>
+                            <SearchContacts
+                                onContactsSelected={createConversation}
+                                selectedContacts={selectedContacts}
+                                setSelectedContacts={setSelectedContacts}
+                            />
+                        </div>
+                    )}
+                </>
+            )}
         </div>
     );
 }

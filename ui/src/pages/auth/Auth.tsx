@@ -9,6 +9,8 @@ import apiClient from "../../lib/api-client.ts";
 import {LOGIN_ROUTE, SIGNUP_ROUTE} from "../../utils/Constants.ts";
 import {useNavigate} from "react-router-dom";
 import {useAppStore} from "../../slices";
+import {Simulate} from "react-dom/test-utils";
+import waiting = Simulate.waiting;
 
 function Auth() {
 
@@ -41,8 +43,11 @@ function Auth() {
             try {
                 const loginResponse: any = await apiClient.post(LOGIN_ROUTE,
                     {"emailId": loginForm.loginEmailId, "password": loginForm.loginPassword}, {withCredentials: true});
-                localStorage.setItem('jwtToken', loginResponse.data.token)
-                setUserInfo(loginResponse.data);
+                const token = loginResponse.data.token;
+                if (token) {
+                    localStorage.setItem('jwtToken', token);
+                    setUserInfo(loginResponse.data);
+                }
                 if(loginResponse.data.userId) {
                     if(loginResponse.data.userProfileCreated){
                         navigate('/MessageComponent');

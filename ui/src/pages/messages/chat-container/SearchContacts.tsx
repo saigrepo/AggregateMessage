@@ -10,11 +10,7 @@ import { Checkbox } from "../../../components/ui/checkbox.tsx";
 import { debounce } from 'lodash';
 import apiClient from "../../../lib/api-client.ts";
 import {SEARCH_CONTACTS_ROUTE} from "../../../utils/Constants.ts";
-
-interface Contact {
-    id: string;
-    name: string;
-}
+import {Contact} from "../../../models/model-types.ts";
 
 function SearchContacts({ onContactsSelected, selectedContacts, setSelectedContacts }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -27,7 +23,7 @@ function SearchContacts({ onContactsSelected, selectedContacts, setSelectedConta
     const handleSave = () => {
         onContactsSelected(selectedContacts);
         setIsOpen(false);
-        setSelectedContacts([]);  // Reset selected contacts after creating a chat
+        // setSelectedContacts([]);  // Reset selected contacts after creating a chat
     };
 
     const fetchContacts = useCallback(async (searchQuery: string, pageNumber: number) => {
@@ -37,10 +33,12 @@ function SearchContacts({ onContactsSelected, selectedContacts, setSelectedConta
                 params: { query: searchQuery, page: pageNumber, size: 20 }
             });
             const contactsResp = response.data.content;
+            console.log(contactsResp);
             const newContacts: Contact[] = contactsResp.map(cont => {
                 return {
-                    "id": cont.id,
-                    "name": cont.emailId
+                    "id": cont.userId,
+                    "name": cont.firstName + " " + cont.lastName,
+                    "email": cont.userEmail
                 };
             });
             setContacts(prevContacts =>
@@ -80,11 +78,11 @@ function SearchContacts({ onContactsSelected, selectedContacts, setSelectedConta
         }
     };
 
-    const handleContactToggle = (contactId: string) => {
+    const handleContactToggle = (contact: Contact) => {
         setSelectedContacts(prev =>
-            prev.includes(contactId)
-                ? prev.filter(id => id !== contactId)
-                : [...prev, contactId]
+            prev.includes(contact)
+                ? prev.filter(prevCon => prevCon.id !== contact.id)
+                : [...prev, contact]
         );
     };
 
@@ -92,7 +90,7 @@ function SearchContacts({ onContactsSelected, selectedContacts, setSelectedConta
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
                 <Button variant="outline" className="bg-background-light border-0">
-                    <IoChatbubblesOutline size={25} />
+                    <IoChatbubblesOutline size={30} />
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
@@ -118,13 +116,13 @@ function SearchContacts({ onContactsSelected, selectedContacts, setSelectedConta
                             <div key={contact.id} className="flex items-center space-x-2 py-2">
                                 <Checkbox
                                     id={contact.id}
-                                    checked={selectedContacts.includes(contact.id)}
-                                    onCheckedChange={() => handleContactToggle(contact.id)}
+                                    checked={selectedContacts.includes(contact)}
+                                    onCheckedChange={() => handleContactToggle(contact)}
                                 />
                                 <Label htmlFor={contact.id} className="flex-grow">
-                                    {contact.name}
+                                    {contact.email}
                                 </Label>
-                                {selectedContacts.includes(contact.id) && (
+                                {selectedContacts.includes(contact) && (
                                     <Check className="w-4 h-4 text-green-500" />
                                 )}
                             </div>

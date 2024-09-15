@@ -32,9 +32,9 @@ public class Conversation {
     @Column
     private String time;
 
-    @OneToMany(mappedBy = "conversationId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "conversationId", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Message> messages;
 
-    @Column
-    private String participants;
+    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Contact> participants;
 }

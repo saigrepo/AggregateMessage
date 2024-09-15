@@ -27,5 +27,11 @@ export interface Conversation  {
     time: string;
     unreadCount?: number;
     messages: Message[];
-    participants?: string[];
+    participants?: Contact[];
+}
+
+export interface Contact {
+    id: string;
+    name: string;
+    email: string;
 }

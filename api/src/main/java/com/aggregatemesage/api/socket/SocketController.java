@@ -35,9 +35,10 @@ public class SocketController {
         return conversationService.getConversation(id);
     }
 
-    @GetMapping("/")
+    @GetMapping("/convs")
     public List<Conversation> getConversations() {
-        return conversationService.getAllConversations();
+        List<Conversation> lst = conversationService.getAllConversations();
+        return lst;
     }
 }
 

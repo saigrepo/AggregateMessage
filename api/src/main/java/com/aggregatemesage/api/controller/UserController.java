@@ -51,6 +51,12 @@ public class UserController {
         return ResponseEntity.ok(new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstname(), user.getLastname()));
     }
 
+    @GetMapping("/user/{email}")
+    public ResponseEntity<UserResponse> getUserDetailByMail(@PathVariable String email) throws Exception {
+        User user = this.userService.getUserByEmail(email);
+        return ResponseEntity.ok(new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstname(), user.getLastname()));
+    }
+
     @PutMapping("/user/{userId}")
     public ResponseEntity updateUserById(@PathVariable Integer userId, @RequestBody UpdateUserDTO updateUserDTO) {
         User user = this.userService.updateUserById(userId, updateUserDTO);

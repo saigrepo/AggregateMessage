@@ -1,5 +1,6 @@
 package com.aggregatemesage.api.controller;
 
+import com.aggregatemesage.api.dtos.UserResponse;
 import com.aggregatemesage.api.model.User;
 import com.aggregatemesage.api.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +21,11 @@ public class ContactController {
     }
 
     @GetMapping("/search")
-    public Page<User> searchContacts(
+    public Page<UserResponse> searchContacts(
             @RequestParam String query,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Page<User> pge= userService.searchContacts(query, PageRequest.of(page, size));
+        Page<UserResponse> pge= userService.searchContacts(query, PageRequest.of(page, size));
         return pge;
     }
 }

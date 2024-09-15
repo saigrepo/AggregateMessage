@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import io from 'socket.io-client'
 import {SOCKET_HOST} from "../../utils/Constants.ts";
+import {toast} from "sonner";
 
 export const useSocket = (room, username) => {
     const [socket, setSocket] = useState(null);
@@ -32,6 +33,8 @@ export const useSocket = (room, username) => {
         });
         setSocket(s);
         s.on("connect", () => {
+            console.log("connected to socket");
+            toast.success("connected to socket");
             setConnected(true);
         });
         s.on("connect_error", (error) => {

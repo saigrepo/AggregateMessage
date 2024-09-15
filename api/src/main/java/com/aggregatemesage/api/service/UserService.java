@@ -1,6 +1,7 @@
 package com.aggregatemesage.api.service;
 
 import com.aggregatemesage.api.dtos.UpdateUserDTO;
+import com.aggregatemesage.api.dtos.UserResponse;
 import com.aggregatemesage.api.model.User;
 import com.aggregatemesage.api.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -68,7 +69,11 @@ public class UserService {
     }
 
 
-    public Page<User> searchContacts(String query, Pageable pageable) {
-        return userRepository.findByFirstnameContainingIgnoreCase(query, pageable);
+    public Page<UserResponse> searchContacts(String query, Pageable pageable) {
+        return userRepository.findByFirstnameContainingIgnoreCase(query, pageable).map(
+                user -> {
+                    return new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstname(), user.getLastname());
+                }
+        );
     }
 }
