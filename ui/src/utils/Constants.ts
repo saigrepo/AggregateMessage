@@ -12,10 +12,14 @@ export const SIGNUP_ROUTE = `${AUTH_ROUTES}/signup`;
 export const CURRENT_USER_ROUTE = `${USERS_ROUTES}/user`;
 
 export const UPDATE_USER_ROUTE = `${USERS_ROUTES}/user`;
-export const SEARCH_CONTACTS_ROUTE = `${CONTACTS_ROUTES}/search`;
+export const SEARCH_CONTACTS_ROUTE = `${USERS_ROUTES}/search`;
 
 export const CREATE_CONVERSATION_ROUTE =  `${HOST}/api/v1/conversation/create`;
 
 export const GET_CONVERSATIONS_ROUTE = `${HOST}/api/v1/conversation/convs`;
 
 export const DELETE_CONVERSATION_ROUTE = `${HOST}/api/v1/conversation`;
+
+
+
+export const AUTHORIZATION_PREFIX = 'Bearer ';

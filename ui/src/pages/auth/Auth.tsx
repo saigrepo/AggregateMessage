@@ -55,6 +55,9 @@ function Auth() {
                 }
             }
             catch (e) {
+                if(e.response.status == 401) {
+                    toast.error("The user is not registered please sign in");
+                }
                 console.log(e.message);
             }
         }
