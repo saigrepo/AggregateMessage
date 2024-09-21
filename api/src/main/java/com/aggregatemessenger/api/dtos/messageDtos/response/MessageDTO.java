@@ -21,7 +21,7 @@ public record MessageDTO(UUID id, String content, LocalDateTime timeStamp, UserD
     }
 
     public static List<MessageDTO> fromMessages(Collection<Message> messages) {
-        if (Objects.isNull(messages)) return List.of();
+        if (Objects.isNull(messages) || messages.isEmpty()) return List.of();
         return messages.stream()
                 .map(MessageDTO::fromMessage)
                 .toList();

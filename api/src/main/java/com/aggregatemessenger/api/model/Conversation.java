@@ -32,7 +32,7 @@ public class Conversation {
     @ManyToOne(fetch = FetchType.EAGER)
     private User createdBy;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Message> messages = new ArrayList<>();
 
     @CreationTimestamp

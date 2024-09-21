@@ -10,6 +10,7 @@ import com.aggregatemessenger.api.service.ConversationService;
 import com.aggregatemessenger.api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -22,6 +23,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationRepository conversationRepository;
 
     @Override
+    @Transactional
     public Conversation createConversation(User reqUser, UUID userId2) throws UserException {
 
         User user2 = userService.findUserById(userId2);
@@ -42,6 +44,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional
     public Conversation findConversationById(UUID id) throws ConversationException {
 
         Optional<Conversation> conversationOptional = conversationRepository.findById(id);
@@ -54,6 +57,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional
     public List<Conversation> findAllByUserId(UUID userId) throws UserException {
 
         User user = userService.findUserById(userId);
@@ -75,6 +79,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional
     public Conversation createGroup(GroupConversationRequestDTO req, User reqUser) throws UserException {
 
         Conversation groupConversation = Conversation.builder()
@@ -154,6 +159,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional
     public Conversation markAsRead(UUID conversationId, User reqUser) throws ConversationException, UserException {
 
         Conversation conversation = findConversationById(conversationId);

@@ -7,12 +7,14 @@ import com.aggregatemessenger.api.exceptions.UserException;
 import com.aggregatemessenger.api.model.Conversation;
 import com.aggregatemessenger.api.model.Message;
 import com.aggregatemessenger.api.model.User;
+import com.aggregatemessenger.api.repository.ConversationRepository;
 import com.aggregatemessenger.api.repository.MessageRepository;
 import com.aggregatemessenger.api.service.ConversationService;
 import com.aggregatemessenger.api.service.MessageService;
 import com.aggregatemessenger.api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -24,8 +26,10 @@ public class MessageServiceImpl implements MessageService {
     private final UserService userService;
     private final ConversationService conversationService;
     private final MessageRepository messageRepository;
+    private final ConversationRepository conversationRepository;
 
     @Override
+    @Transactional
     public Message sendMessage(SendMessageRequestDTO req, UUID userId) throws UserException, ConversationException {
 
         User user = userService.findUserById(userId);
@@ -40,11 +44,11 @@ public class MessageServiceImpl implements MessageService {
                 .build();
 
         conversation.getMessages().add(message);
-
         return messageRepository.save(message);
     }
 
     @Override
+    @Transactional
     public List<Message> getConversationMessages(UUID conversationId, User reqUser) throws UserException, ConversationException {
 
         Conversation conversation = conversationService.findConversationById(conversationId);
@@ -57,6 +61,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public Message findMessageById(UUID messageId) throws MessageException {
 
         Optional<Message> message = messageRepository.findById(messageId);
@@ -69,6 +74,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public void deleteMessageById(UUID messageId, User reqUser) throws UserException, MessageException {
 
         Message message = findMessageById(messageId);

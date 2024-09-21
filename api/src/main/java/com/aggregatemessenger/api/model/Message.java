@@ -33,7 +33,7 @@ public class Message {
     @ManyToOne(fetch = FetchType.EAGER)
     private Conversation conversation;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private Set<UUID> readBy = new HashSet<>();
 
     @CreationTimestamp

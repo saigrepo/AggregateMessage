@@ -50,7 +50,7 @@ const Conversations = ({ conversations, onSelectConversationClick, selectedConvI
     }
 
     const getLastMessage = (conv: ConversationDTO) => {
-        return conv.messages.length > 0 ? conv.messages.at(-1) : "placeholder dummy last message" ;
+        return conv.messages.length > 0 ? conv.messages.at(-1)?.content : "placeholder dummy last message" ;
     }
 
     useEffect(() => {

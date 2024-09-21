@@ -15,6 +15,7 @@ export interface ConversationDTO {
     users: UserDTO[];
     createdBy: UserDTO[];
     messages: MessageDTO[];
+    updatedOn?: String;
 }
 
 export type ConversationReducerState = {

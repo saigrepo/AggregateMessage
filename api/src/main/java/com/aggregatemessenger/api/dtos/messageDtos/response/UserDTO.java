@@ -27,7 +27,7 @@ public record UserDTO(UUID userId,
     }
 
     public static Set<UserDTO> fromUsers(Collection<User> users) {
-        if (Objects.isNull(users)) return Set.of();
+        if (Objects.isNull(users) || users.isEmpty()) return Set.of();
         return users.stream()
                 .map(UserDTO::fromUser)
                 .collect(Collectors.toSet());

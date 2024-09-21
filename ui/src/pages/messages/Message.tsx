@@ -1,5 +1,5 @@
 import {useAppStore} from "../../slices";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {toast} from "sonner";
 import {AUTHORIZATION_PREFIX} from "../../utils/Constants.ts";
@@ -14,12 +14,14 @@ import {
     markConversationAsRead
 } from "../../redux/conversation/ConversationAction.ts";
 import {Client, over, Subscription} from "stompjs";
-import {WebSocketMessageDTO} from "../../redux/message/MessageModel.ts";
+import {MessageDTO, WebSocketMessageDTO} from "../../redux/message/MessageModel.ts";
 import {ConversationDTO} from "../../redux/conversation/ConversationModel.ts";
-import {createMessage} from "../../redux/message/MessageAction.ts";
+import {createMessage, getAllMessages} from "../../redux/message/MessageAction.ts";
 import Conversations from "./Conversations.tsx";
 import conversations from "./Conversations.tsx";
 import Chatroom from "./Chatroom.tsx";
+import {AiOutlineDelete} from "react-icons/ai";
+import ChatArea from "./ChatArea.tsx";
 
 
 function MessageComponent(props) {
@@ -37,12 +39,10 @@ function MessageComponent(props) {
     let [stompClient, setStompClient] = useState<Client>();
     const [subscribeTry, setSubscribeTry] = useState<number>(1);
     const [messageReceived, setMessageReceived] = useState<boolean>(false);
-    const [newMessage, setNewMessage] = useState<string>("");
+    const [newMessageContent, setNewMessageContent] = useState<string>("");
     const [currentConversation, setCurrentConversation] = useState<ConversationDTO>();
     const [conversations, setConversations] = useState<ConversationDTO[]>();
-    const [messageContent, setMessageContent] = useState("");
-
-
+    const [messages, setMessages] =useState<MessageDTO[]>();
 
 
     useEffect(() => {
@@ -77,9 +77,41 @@ function MessageComponent(props) {
     }, [conversationState?.conversations]);
 
     useEffect(() => {
+        setMessages(messageState?.messages);
+    }, [messageState?.messages]);
+
+    useEffect(() => {
+        if (messageReceived && currentConversation?.id && token) {
+            console.log("fetch")
+            dispatch(markConversationAsRead(currentConversation?.id, token));
+            dispatch(getAllMessages(currentConversation.id, token));
+        }
+        if (token) {
+            console.log("fetch")
+            dispatch(getUserConversations(token));
+        }
+        setMessageReceived(false);
+    }, [messageReceived, messageState?.newMessage]);
+
+    const helperToDTO = (user) => {
+        const tempUser = {
+            id: user.userId,
+            emailId: user.userEmail,
+            firstName: user.firstName,
+            lastName: user.lastName
+        }
+        return tempUser;
+    }
+
+    useEffect(() => {
         if (messageState?.newMessage && stompClient && currentConversation && isConnected) {
-            const webSocketMessage: WebSocketMessageDTO = {...messageState.newMessage, conversation: currentConversation};
+            const webSocketMessage: WebSocketMessageDTO = {...messageState.newMessage,
+                user: helperToDTO(messageState.newMessage.user),
+                conversation: {...currentConversation, users: currentConversation.users.map(user => helperToDTO(user)) }};
             stompClient.send("/app/messages", {}, JSON.stringify(webSocketMessage));
+        }
+        if(messages!=null) {
+            setMessages([...messages, messageState?.newMessage]);
         }
     }, [messageState?.newMessage]);
 
@@ -99,10 +131,11 @@ function MessageComponent(props) {
         setMessageReceived(true);
     };
 
-    const onSendMessage = () => {
+    const onSendMessage = (e) => {
+        console.log(newMessageContent);
         if (currentConversation?.id && token) {
-            dispatch(createMessage({conversationId: currentConversation?.id, content: newMessage}, token));
-            setNewMessage("");
+            dispatch(createMessage({conversationId: currentConversation?.id, content: newMessageContent}, token));
+            setNewMessageContent("");
         }
     };
 
@@ -130,19 +163,42 @@ function MessageComponent(props) {
             dispatch(createConversation(selectedContacts[0].id, token))
         }
         setCurrentConversation(conversationState?.createdConversation);
+        setMessages(conversationState?.createdConversation?.messages);
         console.log("New conversation");
         console.log(conversationState?.createdConversation);
     }
     const handleOnClickOfConversation = (conv: ConversationDTO) => {
         if(token) {
             dispatch(markConversationAsRead(conv.id, token));
+            dispatch(getAllMessages(conv?.id, token));
         }
         setCurrentConversation(conv);
+        setMessages(conv.messages);
+    }
+
+    const getLastSeen = (conTime) => {
+        const date = new Date(conTime);
+        const now = new Date();
+        const diffMs = now - date; // difference in milliseconds
+        const diffMins = Math.floor(diffMs / 60000); // convert to minutes
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} mins`;
+        if (diffMins < 1440) return `${Math.floor(diffMins / 60)} hr`;
+
+        return `${Math.floor(diffMins / 1440)} day(s)`;
+    }
+
+    const setDefaultConvName = (conv: ConversationDTO) => {
+        if(!conv?.conversationName) {
+            const user = conv.users.filter((user) => user.userId)[0];
+            return user.firstName +" " + user.lastName;
+        }
     }
 
 
     return (
-        <div className={`flex h-screen bg-background-light border-4 rounded-lg border-white-800 `}>
+        <div className={`flex h-[95vh] w-[95vw] bg-background-light border-4 rounded-lg border-white-800 ml-10 mt-5`}>
             {loading ? (
                 <div className="flex items-center justify-center w-full h-full">
                     <p>Loading conversations...</p> {/* You can replace this with a spinner */}
@@ -160,14 +216,26 @@ function MessageComponent(props) {
                         <>
                             <Conversations conversations={conversations} onSelectConversationClick={handleOnClickOfConversation} selectedConvId={currentConversation?.id}/>
                             {currentConversation ? (
-                                <Chatroom
-                                    selectedConversation={currentConversation}
-                                    messageList={currentConversation.messages}
-                                    messageInput={messageContent}
-                                    setMessageInput={setMessageContent}
-                                    sendMessage={() => console.log("handle send message")}
-                                    handleDeleteConv={() => console.log("handle delete")}
-                                />
+                                <div className={`flex flex-col flex-grow bg-white`}>
+                                    <div className="bg-polo-blue-50 border-b p-4 flex justify-between items-center backdrop-blur-md bg-gradient-to-r from-10%">
+                                        <div>
+                                            <h2 className="font-semibold text-lg">{setDefaultConvName(currentConversation)}</h2>
+                                            <p className="text-sm text-gray-500">Last seen {getLastSeen("")}</p>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            <AiOutlineDelete  size={25} className="cursor-pointer"
+                                                              onClick={() => console.log("handle delete")}
+                                            />
+                                        </div>
+                                    </div>
+                                    <ChatArea
+                                        messages={messages}
+                                        currentUserId={userInfo.userId}
+                                        onSendMessage={onSendMessage}
+                                        messageInput={newMessageContent}
+                                        setMessageInput={setNewMessageContent}
+                                    />
+                                </div>
                             ) : (
                                 <div className="flex-grow flex items-center justify-center">
                                     <p>Select a conversation or start a new one</p>

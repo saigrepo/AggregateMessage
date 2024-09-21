@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -27,12 +28,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public List<User> allUsers() {
         List<User> users = this.userRepository.findAll();
         return users;
     }
 
     @Override
+    @Transactional
     public User findUserById(UUID userId) throws UserException {
         return this.userRepository.findById(userId).orElseThrow(() -> new UserException("User not found: " + userId));
     }
@@ -56,6 +59,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User updateUserById(UUID id, UpdateUserDTO updateUserDTO) {
         User user = this.userRepository.findById(id).orElse(null);
         if( user!=null) {
@@ -84,6 +88,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public List<User> searchUserByName(String name) {
         return userRepository.findByFirstName(name).stream()
                 .sorted(Comparator.comparing(User::getFirstName))
@@ -91,6 +96,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public Page<UserResponse> searchContacts(String query, Pageable pageable) {
         return userRepository.findByFirstNameContainingIgnoreCase(query, pageable).map(
                 user -> {
