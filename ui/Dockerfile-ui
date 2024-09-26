@@ -1,0 +1,15 @@
+FROM node:20.11.1
+
+MAINTAINER Saiagnesh H <saiganesh28042000@gmail.com>
+
+RUN mkdir -p "/product/ui"
+
+COPY ../ui /product/ui
+
+WORKDIR /product/ui
+
+RUN npm i
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev"]

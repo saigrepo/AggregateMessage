@@ -26,3 +26,11 @@ export interface UserDTO {
     lastName: Boolean;
     userEmail: string;
 }
+
+export enum FileTypes {
+    Image = "image",
+    Pdf = "pdf",
+    Audio = "audio",
+    Video = "video",
+    Other = "other",
+}
