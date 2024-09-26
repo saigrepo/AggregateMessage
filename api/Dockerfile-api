@@ -1,0 +1,16 @@
+# Use a Gradle base image with OpenJDK 17
+FROM gradle:7.6.0-jdk17 AS build
+
+MAINTAINER Saiagnesh H <saiganesh28042000@gmail.com>
+
+RUN mkdir -p "/aggregatemessenger/api"
+
+WORKDIR /aggregatemessenger/api
+
+COPY ../api ./
+
+RUN gradle clean build -x test --no-daemon
+
+EXPOSE 6910
+
+CMD ["gradle", "bootRun", "--no-daemon", "-Dspring.profiles.active=dev"]

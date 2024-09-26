@@ -27,7 +27,7 @@ function App() {
             }
         }
 
-        if(!userInfo) {
+        if(!userInfo && localStorage.getItem("jwtToken")!=null) {
             getUserData();
         } else {
             setLoading(false);

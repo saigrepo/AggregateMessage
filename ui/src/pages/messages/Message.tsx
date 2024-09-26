@@ -1,38 +1,45 @@
 import {useAppStore} from "../../slices";
+import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {useEffect, useState} from "react";
 import {toast} from "sonner";
-import {Contact, Conversation, Message} from "../../models/model-types.ts";
-import Conversations from "./chat-container/Conversations.tsx";
-import Sidebar from "./sidebar";
-import {useSocket} from "../../socket/hooks/useSocket.ts";
-import Chatroom from "./chat-container/Chatroom.tsx";
-import apiClient from "../../lib/api-client.ts";
-import SearchContacts from "./chat-container/SearchContacts.tsx";
-import { v4 as uuidv4 } from 'uuid';
+import {AUTHORIZATION_PREFIX} from "../../utils/Constants.ts";
+import SearchUsers from "./SearchUsers.tsx";
+import {Contact} from "../../models/model-types.ts";
+import {RiLogoutCircleRLine} from "react-icons/ri";
+import {useDispatch, useSelector} from "react-redux";
+import {AppDispatch, RootState} from "../../redux/Store.ts";
 import {
-    CREATE_CONVERSATION_ROUTE,
-    DELETE_CONVERSATION_ROUTE,
-    GET_CONVERSATIONS_ROUTE,
-    HOST,
-    SOCKET_HOST
-} from "../../utils/Constants.ts";
+    createConversation,
+    getUserConversations,
+    markConversationAsRead
+} from "../../redux/conversation/ConversationAction.ts";
+import {Client, over, Subscription} from "stompjs";
+import {MessageDTO, WebSocketMessageDTO} from "../../redux/message/MessageModel.ts";
+import {ConversationDTO} from "../../redux/conversation/ConversationModel.ts";
+import {createMessage, getAllMessages} from "../../redux/message/MessageAction.ts";
+import Conversations from "./conversation/Conversations.tsx";
+import ChatArea from "./ChatArea.tsx";
+
 
 function MessageComponent(props) {
-    const { userInfo, setUserInfo, darkMode, toggleDarkMode } = useAppStore();
-    const [selectedConversation, setSelectedConversation] = useState<Conversation>( null);
 
-    const { isConnected, socketResponse, sendData, socket } = useSocket(selectedConversation?.id, userInfo.userId);
-    const navigate = useNavigate();
+    const messageState = useSelector((state: RootState) => state.message);
 
-    const [loading, setLoading] = useState(true); // Add this state
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [messageInput, setMessageInput] = useState("");
-    const [messageList, setMessageList] = useState<Message[]>( []);
-    const [participants, setParticipants] = useState<string[]>([]);
-    const [conversationName, setConversationName] = useState<string>('');
+    const conversationState = useSelector((state: RootState) => state?.conversation);
+    const dispatch: AppDispatch = useDispatch();
+    const { userInfo, setUserInfo } = useAppStore();
+    const [loading, setLoading] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
     const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
-
+    const navigate = useNavigate();
+    const token: string | null = localStorage.getItem("jwtToken");
+    let [stompClient, setStompClient] = useState<Client>();
+    const [subscribeTry, setSubscribeTry] = useState<number>(1);
+    const [messageReceived, setMessageReceived] = useState<boolean>(false);
+    const [newMessageContent, setNewMessageContent] = useState<string>("");
+    const [currentConversation, setCurrentConversation] = useState<ConversationDTO>();
+    const [conversations, setConversations] = useState<ConversationDTO[]>();
+    const [messages, setMessages] =useState<MessageDTO[]>();
 
 
     useEffect(() => {
@@ -42,190 +49,209 @@ function MessageComponent(props) {
         }
     }, [userInfo, navigate]);
 
-    useEffect(() => {
-        const fetchConversations = async () => {
-            if (!isConnected) return;  // Wait until socket is connected
 
-            setLoading(true);
-            try {
-                const response = await apiClient.get(`${GET_CONVERSATIONS_ROUTE}/${userInfo.userId}`);
-                setConversations(response.data);
-            } catch (error) {
-                console.error('Error fetching conversations:', error);
-                toast.error("Failed to fetch conversations");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (isConnected) {
-            fetchConversations();
-        }
-    }, [isConnected]);
-
-
-    const handleSelectedConversation = (id: string) => {
-        const selected = conversations.find(conv => conv?.id === id);
-        if (selected) {
-            setSelectedConversation(selected);
-            setMessageList(selected.messages);
-        }
-    };
-
-
-    const sendMessage = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (messageInput !== "") {
-            sendData({
-                message: messageInput,
-                selectedConversationId: selectedConversation?.id,
-            });
-            addMessageToList({
-                id: uuidv4(),
-                sender: userInfo.userEmail,
-                content: messageInput,
-                time: new Date().toLocaleTimeString(),
-                messagedBy: userInfo.userId,
-            });
-            setMessageInput("");
-        }
-    };
-
-    const addMessageToList = (newMessage: Message) => {
-        setMessageList((prevMessages) => [...prevMessages, newMessage]);
-        setConversations((prevConversations) => prevConversations.map(conv =>
-            conv.id === selectedConversation?.id
-                ? { ...conv, messages: [...conv.messages, newMessage] }
-                : conv
-        ));
-    };
-
-
-
-    useEffect(() => {
-        if (socketResponse && socketResponse.room === selectedConversation?.id) {
-            addMessageToList({
-                id: uuidv4(),
-                sender: userInfo.userEmail,
-                content: socketResponse.message,
-                time: new Date().toLocaleTimeString(),
-                messagedBy: userInfo.userId,
-            });
-        }
-    }, [socketResponse, selectedConversation]);
-
-    const createConvHeading = (seleCon) => {
-        let gro = "New group";
-        seleCon.forEach(con => {
-            gro += " "+con.name.split(" ")[0]
-        })
-        return gro;
+    const handleLogOut = () => {
+        setUserInfo(undefined);
+        localStorage.clear();
+        navigate("/auth");
     }
 
-    const createConversation = async () => {
-        const converHeading = (conversationName.length == 0) ? (selectedContacts.length > 1 ? createConvHeading(selectedContacts) : selectedContacts[0].name) : conversationName
-        const str = [userInfo.userId];
-        selectedContacts.forEach(se => {
-            str.push(se.id);
-        });
 
-        const response = await apiClient.post(CREATE_CONVERSATION_ROUTE, {
-            id: uuidv4(),
-            name: converHeading,
-            avatar: '',
-            lastMessage: '',
-            createdAt: new Date().toISOString(),
-            messages: [],
-            participants: str, // Pass selected participants
-        }, {withCredentials: true});
-        const newConversation: Conversation = response.data;
-        setConversations((prevState) => [...prevState, newConversation]);
-        setSelectedConversation(newConversation);
-        setParticipants(str);
+    useEffect(() => {
+        console.log("Initiating WebSocket connection...");
+        connect();
+    }, []);
 
-        console.log('Conversation created with participants:', participants);
-    };
-
-    const handleDeleteConv = async (convId) => {
-        try {
-            const resp = await apiClient.post(`${DELETE_CONVERSATION_ROUTE}/${convId}`, {withCredentials: true});
-            if(resp.data){
-                const updatedConversations = conversations.filter(conv => conv.id !== convId);
-                setConversations(updatedConversations);
-                if(selectedConversation?.id == convId) {
-                    setSelectedConversation(null);
-                }
-                toast.success("Conversation deleted")
-            }
-        } catch (error) {
-            console.log("unable to delete the conversation", error);
-            toast.error("unable to delete the conversation")
-
+    useEffect(() => {
+        if (token) {
+            dispatch(getUserConversations(token));
         }
+    }, [conversationState?.createdConversation, conversationState?.createdGroup, dispatch, token, messageState?.newMessage, conversationState?.deletedConversation, conversationState?.editedGroup, conversationState?.markedAsReadConversation]);
+
+
+    useEffect(() => {
+        setConversations(conversationState?.conversations);
+    }, [conversationState?.conversations]);
+
+    useEffect(() => {
+        setMessages(messageState?.messages);
+    }, [messageState?.messages]);
+
+    useEffect(() => {
+        if (messageReceived && currentConversation?.id && token) {
+            console.log("fetch")
+            dispatch(markConversationAsRead(currentConversation?.id, token));
+            dispatch(getAllMessages(currentConversation.id, token));
+        }
+        if (token) {
+            console.log("fetch")
+            dispatch(getUserConversations(token));
+        }
+        setMessageReceived(false);
+    }, [messageReceived, messageState?.newMessage]);
+
+    const helperToDTO = (user) => {
+        const tempUser = {
+            id: user.userId,
+            emailId: user.userEmail,
+            firstName: user.firstName,
+            lastName: user.lastName
+        }
+        return tempUser;
     }
 
     useEffect(() => {
-        if (selectedConversation) {
-            socket.emit('join_conversation', selectedConversation.id);
-
-            socket.on('read_message', (message) => {
-                console.log("rm", message);
-                setMessageList((prevMessages) => [...prevMessages, message]);
-            });
-
-            return () => {
-                socket.off('receive_message');
-            };
+        if (messageState?.newMessage && stompClient && currentConversation && isConnected) {
+            const webSocketMessage: WebSocketMessageDTO = {...messageState.newMessage,
+                user: helperToDTO(messageState.newMessage.user),
+                conversation: {...currentConversation, users: currentConversation.users.map(user => helperToDTO(user)) }};
+            stompClient.send("/app/messages", {}, JSON.stringify(webSocketMessage));
         }
-    }, [selectedConversation]);
+        if(messages!=null) {
+            setMessages([...messages, messageState?.newMessage]);
+        }
+    }, [messageState?.newMessage]);
+
+    useEffect(() => {
+        console.log("Attempting to subscribe to ws: ", subscribeTry);
+        if (isConnected && stompClient && stompClient.connected) {
+            const subscription: Subscription = stompClient.subscribe("/topic/" + userInfo.userId.toString(), onMessageReceive);
+
+            return () => subscription.unsubscribe();
+        } else {
+            const timeout = setTimeout(() => setSubscribeTry(subscribeTry + 1), 500);
+            return () => clearTimeout(timeout);
+        }
+    }, [subscribeTry, isConnected, stompClient]);
+
+    const onMessageReceive = () => {
+        setMessageReceived(true);
+    };
+
+    const onSendMessage = (e) => {
+        console.log(newMessageContent);
+        if (currentConversation?.id && token) {
+            dispatch(createMessage({conversationId: currentConversation?.id, content: newMessageContent}, token));
+            setNewMessageContent("");
+        }
+    };
+
+    const connect =()=>{
+        const headers = {
+                    Authorization: `${AUTHORIZATION_PREFIX}${token}`
+                };
+        let Sock = new WebSocket('ws://localhost:6910/ws');
+        const client = over(Sock);
+        setStompClient(client);
+        client.connect(headers, onConnect, onError);
+    }
+
+    const onConnect = (val) => {
+        console.log("Connected", val);
+        setTimeout(() => setIsConnected(true), 1000);
+    };
+
+    const onError = (error: any) => {
+        console.error("WebSocket connection error", error);
+    };
+
+    const handleSelectedContacts =() => {
+        if(selectedContacts.length == 1) {
+            dispatch(createConversation(selectedContacts[0].id, token))
+        }
+        setCurrentConversation(conversationState?.createdConversation);
+        setMessages(conversationState?.createdConversation?.messages);
+        console.log("New conversation");
+        console.log(conversationState?.createdConversation);
+    }
+    const handleOnClickOfConversation = (conv: ConversationDTO) => {
+        if(token) {
+            dispatch(markConversationAsRead(conv.id, token));
+            dispatch(getAllMessages(conv?.id, token));
+        }
+        setCurrentConversation(conv);
+        setMessages(conv.messages);
+    }
+
+    const getLastSeen = (messages) => {
+        const lastReadMessage = messages.filter((msg) => msg.readBy.includes(userInfo.userId)).at(-1);
+        if (!lastReadMessage) return 'Never seen'; // Handle case if no messages were read
+
+        const diffMins = Math.floor((new Date() - new Date(lastReadMessage.timeStamp)) / 60000); // Difference in minutes
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} mins`;
+        if (diffMins < 1440) return `${Math.floor(diffMins / 60)} hr`;
+
+        return `${Math.floor(diffMins / 1440)} day(s)`;
+    };
+
+    const setDefaultConvName = (conv: ConversationDTO) => {
+        if(!conv?.conversationName) {
+            const user = conv.users.filter((user) => user.userId)[0];
+            return user.firstName +" " + user.lastName;
+        }
+    }
+
+    const getInitials = () => {
+        return userInfo.firstName.charAt(0).toUpperCase() + userInfo.lastName.charAt(0).toUpperCase()
+    }
+
 
     return (
-        <div className={`flex h-screen ${darkMode ? 'bg-background-dark' : 'bg-background-light'}`}>
+        <div className={`flex h-[95vh] w-[95vw] bg-white border-4 rounded-lg border-white-800 ml-10 mt-5`}>
             {loading ? (
                 <div className="flex items-center justify-center w-full h-full">
-                    <p>Loading conversations...</p> {/* You can replace this with a spinner */}
+                    <p>Loading conversations...</p>
                 </div>
-            ) : (
-                <>
-                    <Sidebar
-                        userInfo={userInfo}
-                        setUserInfo={setUserInfo}
-                        darkMode={darkMode}
-                        toggleDarkMode={() => toggleDarkMode(!darkMode)}
-                        onContactsSelected={createConversation}
-                        selectedContacts={selectedContacts}
-                        setSelectedContacts={setSelectedContacts}
-                    />
-                    <Conversations
-                        darkMode={darkMode}
-                        conversations={conversations}
-                        onSelectConversation={handleSelectedConversation}
-                        selectedId={selectedConversation?.id}
-                    />
-                    {selectedConversation ? (
-                        <Chatroom
-                            selectedConversation={selectedConversation}
-                            messageList={messageList}
-                            messageInput={messageInput}
-                            setMessageInput={setMessageInput}
-                            sendMessage={sendMessage}
-                            darkMode={darkMode}
-                            handleDeleteConv={handleDeleteConv}
-                        />
-                    ) : (
-                        <div className="flex-grow flex items-center justify-center">
-                            <p>Select a conversation or start a new one</p>
-                            <SearchContacts
-                                onContactsSelected={createConversation}
-                                selectedContacts={selectedContacts}
-                                setSelectedContacts={setSelectedContacts}
-                            />
-                        </div>
-                    )}
-                </>
+            ) : ( <>
+                <div className="w-15 flex flex-col justify-between py-4 h-full border-r-2">
+                    <div className="flex flex-col items-center justify-between h-[100px]">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-[#EBFBFE]">{getInitials()}</div>
+                        <SearchUsers onContactsSelected={handleSelectedContacts} setSelectedContacts={setSelectedContacts} selectedContacts={selectedContacts} />
+                    </div>
+                    <div className="flex flex-col items-center">
+                        <RiLogoutCircleRLine className="cursor-pointer" size={28} onClick={handleLogOut} />
+                    </div>
+                </div>
+                {conversations?.length > 0 ? (
+                        <>
+                            <Conversations conversations={conversations} onSelectConversationClick={handleOnClickOfConversation} selectedConvId={currentConversation?.id}/>
+                            {currentConversation ? (
+                                <div className={`flex flex-col flex-grow bg-gradient-to-bl from-teal-900 via-stone-100 via-0% to-white to-100%`}>
+                                    <div className="border-b p-4 h-[65px] flex justify-between items-center backdrop-blur-md bg-gradient-to-r from-10%">
+                                        <div>
+                                            <h2 className="font-semibold text-lg">{setDefaultConvName(currentConversation)}</h2>
+                                            <p className="text-sm text-gray-500">Last seen {getLastSeen(currentConversation?.messages)}</p>
+                                        </div>
+                                    </div>
+                                    <ChatArea
+                                        messages={messages}
+                                        currentUserId={userInfo.userId}
+                                        onSendMessage={onSendMessage}
+                                        messageInput={newMessageContent}
+                                        setMessageInput={setNewMessageContent}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="flex-grow flex items-center justify-center">
+                                    <p>Select a conversation or start a new one</p>
+                                    <SearchUsers onContactsSelected={handleSelectedContacts} setSelectedContacts={setSelectedContacts} selectedContacts={selectedContacts} />
+                                </div>
+                            )}
+                        </>
+                ) : (
+                    <div className="flex-grow flex items-center justify-center">
+                        <p>Select a conversation or start a new one</p>
+                        <SearchUsers onContactsSelected={handleSelectedContacts} setSelectedContacts={setSelectedContacts} selectedContacts={selectedContacts} />
+                    </div>
+                )}
+            </>
             )}
-        </div>
-    );
+        </div>);
+
+
+
 }
 
 export default MessageComponent;

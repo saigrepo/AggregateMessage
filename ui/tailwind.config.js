@@ -10,12 +10,8 @@ export default {
   			sm: 'calc(var(--radius) - 4px)'
   		},
 		backgroundImage: {
-			'custom-linearPrimarySecondary-1': 'linear-gradient(45deg, #4bbfc4, #91dee2)',
-			'custom-linearPrimaryAccent-1': 'linear-gradient(45deg, #4bbfc4, #67dadf)',
-			'custom-linearSecondaryAccent-1': 'linear-gradient(45deg, #91dee2, #67dadf)',
-			'custom-linearPrimarySecondary-2': 'linear-gradient(45deg, #3bb1b5, #1d696d)',
-			'custom-linearPrimaryAccent-2': 'linear-gradient(45deg, #3bb1b5, #209297)',
-			'custom-linearSecondaryAccent-2': 'linear-gradient(45deg, #1d696d, #209297)',
+			'custom-linear' : 'linear-gradient(45deg, rgba(97, 90, 226, 0.6) 0%, rgba(53, 49, 124, 0.48) 100%)',
+			'custom-conic-gradient': 'conic-gradient(from 180deg at 50% 50%, rgb(122, 119, 224) 180deg, rgb(144, 142, 210) 360deg)',
 		},
   		colors: {
 			'background-light' : '#f9fcfd',
