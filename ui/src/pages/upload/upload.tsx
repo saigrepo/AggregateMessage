@@ -28,7 +28,7 @@ export default function Upload({ onUploadedFile }) {
         <div className="flex">
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button className="border-0" variant="outline">
+                    <Button className="border-0 bg-transparent rounded-full p-2" variant="outline">
                         <FaPaperclip size={25} />
                     </Button>
                 </DialogTrigger>

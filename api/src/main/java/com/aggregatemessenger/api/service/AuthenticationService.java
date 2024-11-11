@@ -9,6 +9,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuthenticationService {
 
@@ -36,4 +38,18 @@ public class AuthenticationService {
 
         return userRepository.findByEmailId(user.getEmailId()).orElseThrow();
     }
+
+    public User gAuth(String emailId) {
+        Optional<User> usr = userRepository.findByEmailId(emailId);
+        if(usr.isEmpty()) {
+            User newUser = new User();
+            newUser.setEmailId(emailId);
+            newUser.setProfileCreated(false);
+            newUser.setPassword(passwordEncoder.encode(emailId));
+            userRepository.save(newUser);
+            return newUser;
+        }
+        return usr.get();
+    }
+
 }

@@ -16,6 +16,10 @@ export default {
   		colors: {
 			'background-light' : '#f9fcfd',
 			'background-dark' : '#030608',
+			'bg-tones-1': '#e9f2f4',
+			'bg-tones-2': '#f8fbfb',
+			'bg-tones-3': '#f2f7f8',
+			'bg-tones-4': '#ebe9f4'
 
 		}
   	}

@@ -89,7 +89,7 @@ function SearchUsers({ onContactsSelected, selectedContacts, setSelectedContacts
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="bg-background-light border-0">
+                <Button variant="outline" className="bg-transparent border-0">
                     <IoChatbubblesOutline size={28} />
                 </Button>
             </DialogTrigger>

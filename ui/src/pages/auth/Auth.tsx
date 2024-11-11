@@ -11,6 +11,8 @@ import {useNavigate} from "react-router-dom";
 import {useAppStore} from "../../slices";
 import {Simulate} from "react-dom/test-utils";
 import waiting = Simulate.waiting;
+import axios from "axios";
+import {GoogleLogin, GoogleOAuthProvider} from "@react-oauth/google";
 
 function Auth() {
     const [tabsDefault, setTabsDefault] = useState("Login")
@@ -108,6 +110,31 @@ function Auth() {
         return true;
     }
 
+    const handleGoogleSuccess = async (response) => {
+        const {credential} = response;
+        try {
+            const res = await apiClient.post('api/v1/auth/oauth2/google', {
+                credential: response.credential
+            });
+            const token = res.data.token;
+
+            // Store JWT in localStorage
+            localStorage.setItem('jwtToken', token);
+            setUserInfo(res.data);
+
+            if(res.data.userId) {
+                if(res.data.userProfileCreated){
+                    navigate('/MessageComponent');
+                }  else {
+                    toast("Profile setup is yet to be completed");
+                    navigate("/Profile");
+                }
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
 
     return (
         <div className="h-[100vh] w-[100vw] flex items-center justify-center">
@@ -167,6 +194,14 @@ function Auth() {
                                 <Button className="p-4" onClick={handleSignup}>Sign Up</Button>
                             </TabsContent>
                         </Tabs>
+                    </div>
+                    <div className="flex w-full justify-center">
+                        <GoogleOAuthProvider clientId="703465360956-528cvqrjp05sil60f5hglchllkdda21u.apps.googleusercontent.com">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={() => console.log('Login Failed')}
+                            />
+                        </GoogleOAuthProvider>
                     </div>
                 </div>
 

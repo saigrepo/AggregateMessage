@@ -4,6 +4,9 @@ import { Textarea } from "../../components/ui/textarea.tsx";
 import MessageBubble from "./cards/MessageBubble.tsx";
 import { MessageDTO } from "../../redux/message/MessageModel.ts";
 import Upload from "../upload/upload.tsx";
+import { MdOutlineGeneratingTokens } from "react-icons/md";
+import {TextVariation} from "./conversation/TextVariation.tsx";
+
 
 interface ChatAreaProps {
     messages: MessageDTO[];
@@ -58,7 +61,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
 
     return (
         <>
-            <div className="flex-1 overflow-y-auto p-4 bg-radialPrimarySecondary">
+            <div className="flex-1 overflow-y-auto p-4 bg-bg-tones-2">
                 {messages.length > 0 ? (
                     messages.map((msg) => (
                         <MessageBubble
@@ -70,10 +73,10 @@ const ChatArea: React.FC<ChatAreaProps> = ({
                 ) : (
                     <div className="flex items-center justify-center">No Messages. Start a conversation!</div>
                 )}
-                <div ref={chatEndRef}></div> {/* Placeholder for scrolling */}
+                <div ref={chatEndRef}></div> {}
             </div>
 
-            <div className="border-t p-2">
+            <div className="border-t p-2 bg-bg-tones-2">
                 <form onSubmit={handleSendMessage} className="flex items-center rounded-full px-2 py-2">
                     <div className="flex space-x-2">
                         <Upload onUploadedFile={setUploadedFiles} />
@@ -82,11 +85,12 @@ const ChatArea: React.FC<ChatAreaProps> = ({
                         value={messageInput}
                         onChange={(e) => setMessageInput(e.target.value)}
                         placeholder="Write your message here"
-                        className="flex-1 bg-transparent outline-none border-2 rounded-2xl mx-1 p-2 overflow-auto"
+                        className="flex-1 bg-transparent outline-none border-2 rounded-md mx-1 p-2 overflow-auto"
                         onKeyDown={handleKeyPressSendMessage}
                     />
-                    <button type="submit" className="ml-2 bg-blue-500 text-white rounded-full p-2">
-                        <Send size={16} />
+                    <TextVariation messageText={messageInput} setMessageInput={setMessageInput} />
+                    <button type="submit" key= "sendText" className="ml-2 p-2 rounded-full">
+                        <Send size={25} />
                     </button>
                 </form>
             </div>

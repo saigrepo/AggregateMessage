@@ -1,6 +1,6 @@
 export interface AuthSlice {
     userInfo: undefined;
-    setUserInfo: (userInfo: AuthSlice['userInfo']) => void;
+    setUserInfo: (userInfo: (prevState) => void) => void;
 }
 
 export const creatAuthslice = (set): AuthSlice => ({

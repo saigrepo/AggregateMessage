@@ -19,6 +19,8 @@ import {ConversationDTO} from "../../redux/conversation/ConversationModel.ts";
 import {createMessage, getAllMessages} from "../../redux/message/MessageAction.ts";
 import Conversations from "./conversation/Conversations.tsx";
 import ChatArea from "./ChatArea.tsx";
+import TelegramLogin from "../telegram/TelegramLogin.tsx";
+import TelegramMessageComponent from "../telegram/TelegramMessage.tsx";
 
 
 function MessageComponent(props) {
@@ -27,7 +29,7 @@ function MessageComponent(props) {
 
     const conversationState = useSelector((state: RootState) => state?.conversation);
     const dispatch: AppDispatch = useDispatch();
-    const { userInfo, setUserInfo } = useAppStore();
+    const { userInfo, setUserInfo, isLoggedIn } = useAppStore();
     const [loading, setLoading] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
     const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
@@ -51,7 +53,7 @@ function MessageComponent(props) {
 
 
     const handleLogOut = () => {
-        setUserInfo(undefined);
+        setUserInfo(null);
         localStorage.clear();
         navigate("/auth");
     }
@@ -199,16 +201,17 @@ function MessageComponent(props) {
 
 
     return (
-        <div className={`flex h-[95vh] w-[95vw] bg-white border-4 rounded-lg border-white-800 ml-10 mt-5`}>
+        <div className={`flex h-[95vh] w-[95vw] bg-bg-tones-2 border-4 rounded-lg border-white-800 ml-10 mt-5`}>
             {loading ? (
                 <div className="flex items-center justify-center w-full h-full">
                     <p>Loading conversations...</p>
                 </div>
             ) : ( <>
-                <div className="w-15 flex flex-col justify-between py-4 h-full border-r-2">
-                    <div className="flex flex-col items-center justify-between h-[100px]">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-[#EBFBFE]">{getInitials()}</div>
+                <div className="w-15 flex flex-col justify-between py-4 h-full border-r-2 bg-bg-tones-4">
+                    <div className="flex flex-col items-center justify-between h-[180px]">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-transparent">{getInitials()}</div>
                         <SearchUsers onContactsSelected={handleSelectedContacts} setSelectedContacts={setSelectedContacts} selectedContacts={selectedContacts} />
+                        <TelegramLogin />
                     </div>
                     <div className="flex flex-col items-center">
                         <RiLogoutCircleRLine className="cursor-pointer" size={28} onClick={handleLogOut} />
@@ -216,12 +219,12 @@ function MessageComponent(props) {
                 </div>
                 {conversations?.length > 0 ? (
                         <>
-                            <Conversations conversations={conversations} onSelectConversationClick={handleOnClickOfConversation} selectedConvId={currentConversation?.id}/>
+                            <Conversations conversations={conversations} onSelectConversationClick={handleOnClickOfConversation} selectedConvId={currentConversation?.id} messageTitle="Message"/>
                             {currentConversation ? (
-                                <div className={`flex flex-col flex-grow bg-gradient-to-bl from-teal-900 via-stone-100 via-0% to-white to-100%`}>
-                                    <div className="border-b p-4 h-[65px] flex justify-between items-center backdrop-blur-md bg-gradient-to-r from-10%">
+                                <div className={`flex flex-col flex-grow bg-bg-tones-4`}>
+                                    <div className="border-b p-4 h-[55px] flex justify-between items-center backdrop-blur-md bg-gradient-to-r from-bg-tones-4 to-bg-tones-2">
                                         <div>
-                                            <h2 className="font-semibold text-lg">{setDefaultConvName(currentConversation)}</h2>
+                                            <h2 className="font-semibold font-serif text-[1em]">{setDefaultConvName(currentConversation)}</h2>
                                             <p className="text-sm text-gray-500">Last seen {getLastSeen(currentConversation?.messages)}</p>
                                         </div>
                                     </div>

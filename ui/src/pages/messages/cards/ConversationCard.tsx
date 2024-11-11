@@ -44,12 +44,12 @@ const ConversationCard = ({ conv, onSelectConversationClick, userInfo, selectedC
     return (
         <div
             key={conv?.id}
-            className={`flex justify-between gap-2 rounded-lg overflow-hidden border border-slate-100 group hover:pr-0 pr-2 hover:border-slate-900 transition-all ${conv?.id === selectedConvId ? 'bg-gradient-to-r from-blue-200 to-cyan-200' : ''}`}
+            className={`flex justify-between gap-2 rounded-lg overflow-hidden border border-slate-100 group hover:pr-0 pr-2 hover:border-slate-900 transition-all ${conv?.id === selectedConvId ? 'bg-gradient-to-r from-bg-tones-1 to-bg-tones-2' : ''}`}
             onClick={() => onSelectConversationClick(conv)}
             onMouseEnter={() => setHoveredConvId(conv.id)}
             onMouseLeave={() => setHoveredConvId(null)}>
-            <div className="flex items-center flex-1 p-2">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-white mr-2">{getInitials(conv)}</div>
+            <div key={conv?.id} className="flex items-center flex-1 p-2">
+                <div key={conv?.id} className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-white mr-2">{getInitials(conv)}</div>
                 <div className={`flex-1 min-w-0`}>
                     <div className="flex justify-between items-baseline">
                         <h3 className="font-medium text-sm truncate">{setDefaultConvName(conv)}</h3>

@@ -16,7 +16,12 @@ function App() {
             try {
                 const resp = await apiClient.get(CURRENT_USER_ROUTE, {withCredentials: true});
                 if(resp.status==200 && resp.data.userId) {
-                    setUserInfo(resp.data);
+                    if(localStorage.getItem("telegramToken")!=null) {
+                        console.log(userInfo);
+                        setUserInfo({...resp?.data, telegramSessionString: localStorage.getItem("telegramToken"), telegramLoggedIn: true});
+                    } else {
+                        setUserInfo(resp.data);
+                    }
                 } else {
                     setUserInfo(undefined);
                 }
@@ -47,7 +52,13 @@ function App() {
     const AuthedRoute = ({ children})=> {
         const { userInfo } = useAppStore();
         const authed = !!userInfo && !!localStorage.getItem("jwtToken");
-        return authed ?  <Navigate to='/MessageComponent' /> : children;
+        if(authed) {
+            if(!userInfo?.userProfileCreated) {
+                return <Navigate to='/profile' />
+            }
+            return <Navigate to='/MessageComponent' />
+        }
+        return children;
     };
 
   return (

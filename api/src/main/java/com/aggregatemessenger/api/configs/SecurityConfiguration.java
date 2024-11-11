@@ -23,13 +23,16 @@ public class SecurityConfiguration {
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    final String[] WHITE_LIST_URL = {"/api/v1/auth/**", "/ws/**"};
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+    final String[] WHITE_LIST_URL = {"/api/v1/auth/**", "/ws/**", "/login/oauth2/**", "/api/v1/auth/oauth2/callback/google"};
     public SecurityConfiguration(
             JwtAuthenticationFilter jwtAuthenticationFilter,
-            AuthenticationProvider authenticationProvider
-    ) {
+            AuthenticationProvider authenticationProvider,
+            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.authenticationProvider = authenticationProvider;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
     }
 
     @Bean
@@ -37,19 +40,20 @@ public class SecurityConfiguration {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/api/v1/auth/**")
-                                .permitAll().requestMatchers("/ws/**").permitAll()
+                        req.requestMatchers(WHITE_LIST_URL)
+                                .permitAll()
                                 .anyRequest()
                                 .authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(auth -> auth.defaultSuccessUrl("/api/v1/auth/oauth2/google"))
                 .httpBasic(Customizer.withDefaults());
-
 
         return http.build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
