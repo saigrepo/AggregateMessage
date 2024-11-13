@@ -1,3 +1,5 @@
+import {defaultTheme} from "react-select";
+
 /** @type {import('tailwindcss').Config} */
 export default {
     darkMode: ["class"],
@@ -19,7 +21,8 @@ export default {
 			'bg-tones-1': '#e9f2f4',
 			'bg-tones-2': '#f8fbfb',
 			'bg-tones-3': '#f2f7f8',
-			'bg-tones-4': '#ebe9f4'
+			'bg-tones-4': '#ebe9f4',
+			'telegram-1': '#1b86c7c7'
 
 		}
   	}

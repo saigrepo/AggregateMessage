@@ -6,6 +6,7 @@ const cors = require("cors");
 const socketIo = require("socket.io");
 const http = require("http");
 const { NewMessage } = require("telegram/events");
+const { version } = require("os");
 
 require('dotenv').config();
 const app = express();
@@ -65,7 +66,8 @@ app.get("/api/telegram-conversations", async (req, res) => {
             title: dialog.title,
             lastMessage: dialog.lastMessage ? dialog.lastMessage.message : null,
             date: dialog.lastMessage ? dialog.lastMessage.date : null,
-            unreadCount: dialog.unreadCount
+            unreadCount: dialog.unreadCount,
+            version: dialog.version
         }));
         console.log(conversations);
 
@@ -82,7 +84,7 @@ app.get("/api/telegram-contacts", async (req, res) => {
         console.log("Fetching contacts");
         await client.connect(); // Ensure the client is connected
 
-        const result = await client.getParticipants(Phone); // Fetch the contacts
+        const result = await client.sendMessage(Phone); // Fetch the contacts
         const contacts = result.map(contact => ({
             id: contact.id,
             firstName: contact.firstName,
@@ -98,7 +100,6 @@ app.get("/api/telegram-contacts", async (req, res) => {
     }
 });
 
-// Telegram login endpoint
 app.post("/api/telegram-login", async (req, res) => {
     const { phoneNumber } = req.body;
 

@@ -34,3 +34,12 @@ export enum FileTypes {
     Video = "video",
     Other = "other",
 }
+
+export interface TelegramConversation {
+    id: any,
+    title: string,
+    lastMessage: string | undefined,
+    date: any,
+    unreadCount: number,
+    version: any
+}

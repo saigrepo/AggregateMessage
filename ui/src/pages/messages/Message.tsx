@@ -5,7 +5,7 @@ import {toast} from "sonner";
 import {AUTHORIZATION_PREFIX} from "../../utils/Constants.ts";
 import SearchUsers from "./SearchUsers.tsx";
 import {Contact} from "../../models/model-types.ts";
-import {RiLogoutCircleRLine} from "react-icons/ri";
+import {RiLogoutCircleRLine, RiSwap2Fill} from "react-icons/ri";
 import {useDispatch, useSelector} from "react-redux";
 import {AppDispatch, RootState} from "../../redux/Store.ts";
 import {
@@ -21,6 +21,8 @@ import Conversations from "./conversation/Conversations.tsx";
 import ChatArea from "./ChatArea.tsx";
 import TelegramLogin from "../telegram/TelegramLogin.tsx";
 import TelegramMessageComponent from "../telegram/TelegramMessage.tsx";
+import apiClient from "../../lib/api-client.ts";
+import {HiSwitchHorizontal} from "react-icons/hi";
 
 
 function MessageComponent(props) {
@@ -42,6 +44,7 @@ function MessageComponent(props) {
     const [currentConversation, setCurrentConversation] = useState<ConversationDTO>();
     const [conversations, setConversations] = useState<ConversationDTO[]>();
     const [messages, setMessages] =useState<MessageDTO[]>();
+    const [showTelegram, setShowTelegram] = useState(false);
 
 
     useEffect(() => {
@@ -62,7 +65,16 @@ function MessageComponent(props) {
     useEffect(() => {
         console.log("Initiating WebSocket connection...");
         connect();
+        // getConvFromTelegram();
     }, []);
+
+    const getConvFromTelegram = async () => {
+        const res = await fetch("http://localhost:5400/api/telegram-conversations", {
+            method: "GET"
+        });
+        const data = await res.json();
+        console.log(data);
+    }
 
     useEffect(() => {
         if (token) {
@@ -214,41 +226,47 @@ function MessageComponent(props) {
                         <TelegramLogin />
                     </div>
                     <div className="flex flex-col items-center">
+                        <HiSwitchHorizontal className="cursor-pointer mb-3" size={28} onClick={() => setShowTelegram(true)}/>
                         <RiLogoutCircleRLine className="cursor-pointer" size={28} onClick={handleLogOut} />
                     </div>
                 </div>
-                {conversations?.length > 0 ? (
-                        <>
-                            <Conversations conversations={conversations} onSelectConversationClick={handleOnClickOfConversation} selectedConvId={currentConversation?.id} messageTitle="Message"/>
-                            {currentConversation ? (
-                                <div className={`flex flex-col flex-grow bg-bg-tones-4`}>
-                                    <div className="border-b p-4 h-[55px] flex justify-between items-center backdrop-blur-md bg-gradient-to-r from-bg-tones-4 to-bg-tones-2">
-                                        <div>
-                                            <h2 className="font-semibold font-serif text-[1em]">{setDefaultConvName(currentConversation)}</h2>
-                                            <p className="text-sm text-gray-500">Last seen {getLastSeen(currentConversation?.messages)}</p>
+                    {!showTelegram ? (
+                        conversations?.length > 0 ? (
+                            <>
+                                <Conversations conversations={conversations} onSelectConversationClick={handleOnClickOfConversation} selectedConvId={currentConversation?.id} messageTitle="Message"/>
+                                {currentConversation ? (
+                                    <div className={`flex flex-col flex-grow bg-bg-tones-4`}>
+                                        <div className="border-b p-4 h-[55px] flex justify-between items-center backdrop-blur-md bg-gradient-to-r from-bg-tones-4 to-bg-tones-2">
+                                            <div>
+                                                <h2 className="font-semibold font-serif text-[1em]">{setDefaultConvName(currentConversation)}</h2>
+                                                <p className="text-sm text-gray-500">Last seen {getLastSeen(currentConversation?.messages)}</p>
+                                            </div>
                                         </div>
+                                        <ChatArea
+                                            messages={messages}
+                                            currentUserId={userInfo.userId}
+                                            onSendMessage={onSendMessage}
+                                            messageInput={newMessageContent}
+                                            setMessageInput={setNewMessageContent}
+                                        />
                                     </div>
-                                    <ChatArea
-                                        messages={messages}
-                                        currentUserId={userInfo.userId}
-                                        onSendMessage={onSendMessage}
-                                        messageInput={newMessageContent}
-                                        setMessageInput={setNewMessageContent}
-                                    />
-                                </div>
-                            ) : (
-                                <div className="flex-grow flex items-center justify-center">
-                                    <p>Select a conversation or start a new one</p>
-                                    <SearchUsers onContactsSelected={handleSelectedContacts} setSelectedContacts={setSelectedContacts} selectedContacts={selectedContacts} />
-                                </div>
-                            )}
-                        </>
-                ) : (
-                    <div className="flex-grow flex items-center justify-center">
-                        <p>Select a conversation or start a new one</p>
-                        <SearchUsers onContactsSelected={handleSelectedContacts} setSelectedContacts={setSelectedContacts} selectedContacts={selectedContacts} />
-                    </div>
-                )}
+                                ) : (
+                                    <div className="flex-grow flex items-center justify-center">
+                                        <p>Select a conversation or start a new one</p>
+                                        <SearchUsers onContactsSelected={handleSelectedContacts} setSelectedContacts={setSelectedContacts} selectedContacts={selectedContacts} />
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="flex-grow flex items-center justify-center">
+                                <p>Select a conversation or start a new one</p>
+                                <SearchUsers onContactsSelected={handleSelectedContacts} setSelectedContacts={setSelectedContacts} selectedContacts={selectedContacts} />
+                            </div>
+                        )
+                    ) :
+                    <>
+                        <div>Telegram Chats</div>
+                    </>}
             </>
             )}
         </div>);

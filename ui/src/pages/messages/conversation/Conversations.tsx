@@ -38,6 +38,10 @@ const Conversations = ({ conversations, onSelectConversationClick, selectedConvI
     );
 
     useEffect(() => {
+        setFilteredConversations(conversations);
+    }, []);
+
+    useEffect(() => {
         window.addEventListener("mousemove", resize);
         window.addEventListener("mouseup", stopResizing);
         return () => {

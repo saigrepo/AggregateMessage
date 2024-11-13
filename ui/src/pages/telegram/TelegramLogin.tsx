@@ -8,6 +8,8 @@ import {Input} from "../../components/ui/input.tsx";
 import {Checkbox} from "../../components/ui/checkbox.tsx";
 import {useAppStore} from "../../slices";
 import {toast} from "sonner";
+import TelegramMessageComponent from "./TelegramMessage.tsx";
+import {TelegramConversation} from "../../models/model-types.ts";
 
 function TelegramLogin() {
     const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +21,10 @@ function TelegramLogin() {
     const [phoneCodeHash, setPhoneCodeHash] = useState("");
     const { sessionString, setTelegramLogin, isLoggedIn, userInfo, setUserInfo } = useAppStore();
     const [loading, setLoading] = useState(false);
+    const [conversations, setConversations] = useState<TelegramConversation[]>([]);
+    const [fetching, setFetching] = useState(false);
+    const [filtered, setFiltered] = useState<TelegramConversation[]>([]);
+
 
     useEffect(() => {
         console.log("Updated User Info");
@@ -143,10 +149,40 @@ function TelegramLogin() {
         }
     };
 
+    useEffect(() => {
+        const fetchConversations = async () => {
+            setFetching(true);
+            try {
+                const response = await fetch("http://localhost:5400/api/telegram-conversations", {
+                    method: "GET"
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setConversations(data?.conversations);
+                    console.log(data.conversations);
+                } else {
+                    console.error("Failed to fetch conversations");
+                }
+            } catch (error) {
+                console.error("Error fetching conversations:", error);
+            } finally {
+                setFetching(false);
+            }
+        };
+        console.log(conversations.length);
+        if(userInfo?.telegramLoggedIn && (conversations.length == 0)) {
+            fetchConversations();
+        }
+    }, []);
+
+    const handleProceed = () => {
+
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" disabled={userInfo?.telegramLoggedIn} className="bg-transparent border-0">
+                <Button variant="outline" className="bg-transparent border-0">
                     <RiTelegramLine size={28}/>
                 </Button>
             </DialogTrigger>
@@ -234,15 +270,20 @@ function TelegramLogin() {
                     )}
                 </DialogFooter>
             </DialogContent>
-                : <DialogContent className="sm:max-w-[425px]">
+                : <DialogContent className="sm:max-w-605px">
                     <DialogHeader>
                         <DialogTitle>
                             <div className="flex flex-col items-center">
                                 <RiTelegramLine size={50} color="#1b86c7c7"/>
-                                <h1 className="text-xl">Logged In Already</h1>
+                                <h1 className="text-xl">Select Chats</h1>
                             </div>
                         </DialogTitle>
-                    </DialogHeader></DialogContent>}
+                        <TelegramMessageComponent conversations={conversations} setFiltered={setFiltered} filtered={filtered} fetching={fetching}/>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button type="submit" onClick={handleProceed}>Proceed</Button>
+                    </DialogFooter>
+                </DialogContent>}
         </Dialog>
     );
 }
