@@ -1,29 +1,23 @@
-import React, {useEffect, useState} from "react";
-import {Dialog, DialogTitle, DialogTrigger} from "@radix-ui/react-dialog";
-import {Button} from "../../components/ui/button.js";
-import { PhoneInput } from 'react-international-phone';
-import {DialogContent, DialogFooter, DialogHeader} from "../../components/ui/dialog.js";
-import { RiTelegramLine } from "react-icons/ri";
+import React, {useEffect, useState} from 'react';
+import {DialogContent, DialogFooter, DialogHeader} from "../../components/ui/dialog.tsx";
+import {DialogTitle} from "@radix-ui/react-dialog";
+import {RiTelegramLine} from "react-icons/ri";
 import {Input} from "../../components/ui/input.tsx";
 import {Checkbox} from "../../components/ui/checkbox.tsx";
-import {useAppStore} from "../../slices";
 import {toast} from "sonner";
-import TelegramMessageComponent from "./TelegramMessage.tsx";
-import {TelegramConversation} from "../../models/model-types.ts";
+import {useAppStore} from "../../slices";
+import {Button} from "../../components/ui/button.tsx";
 
-function TelegramLogin() {
-    const [isOpen, setIsOpen] = useState(false);
+function Login({setIsOpen, setSelectLogin, setLoadTeleConv}) {
+
     const [password, setPassword] = useState("");
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
     const [phoneNumber, setPhoneNumber] = useState("+91 ");
     const [phoneCode, setPhoneCode] = useState("");
     const [isCodeSent, setIsCodeSent] = useState(false);
     const [phoneCodeHash, setPhoneCodeHash] = useState("");
-    const { sessionString, setTelegramLogin, isLoggedIn, userInfo, setUserInfo } = useAppStore();
+    const { sessionString, userInfo, setUserInfo } = useAppStore();
     const [loading, setLoading] = useState(false);
-    const [conversations, setConversations] = useState<TelegramConversation[]>([]);
-    const [fetching, setFetching] = useState(false);
-    const [filtered, setFiltered] = useState<TelegramConversation[]>([]);
 
 
     useEffect(() => {
@@ -114,7 +108,7 @@ function TelegramLogin() {
         }
         let response: Response | null = null;
         if(twoFactorEnabled) {
-            await fetch("http://localhost:5400/api/telegram-login-twoFactor", {
+            await fetch("http://localhost:5400/api/telegram-verify-twoFactor", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -122,7 +116,7 @@ function TelegramLogin() {
                 body: JSON.stringify(jsonBody),
             });
         } else {
-            response = await fetch("http://localhost:5400/api/telegram-login-code", {
+            response = await fetch("http://localhost:5400/api/telegram-verify-code", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -137,7 +131,8 @@ function TelegramLogin() {
                 toast.success("Successfully logged in!");
                 localStorage.setItem("telegramToken", data?.sessionString);
                 setUserInfo({...userInfo, telegramSessionString: data?.sessionString, telegramLoggedIn: true});
-                setIsOpen(false);
+                setSelectLogin(false);
+                setLoadTeleConv(true);
                 toast.success("Telegram Sign up success full for user");
             } else if (data.requiresSignUp) {
                 toast.error("You need to sign up for Telegram first.");
@@ -149,45 +144,10 @@ function TelegramLogin() {
         }
     };
 
-    useEffect(() => {
-        const fetchConversations = async () => {
-            setFetching(true);
-            try {
-                const response = await fetch("http://localhost:5400/api/telegram-conversations", {
-                    method: "GET"
-                });
-                const data = await response.json();
-                if (data.success) {
-                    setConversations(data?.conversations);
-                    console.log(data.conversations);
-                } else {
-                    console.error("Failed to fetch conversations");
-                }
-            } catch (error) {
-                console.error("Error fetching conversations:", error);
-            } finally {
-                setFetching(false);
-            }
-        };
-        console.log(conversations.length);
-        if(userInfo?.telegramLoggedIn && (conversations.length == 0)) {
-            fetchConversations();
-        }
-    }, []);
-
-    const handleProceed = () => {
-
-    }
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline" className="bg-transparent border-0">
-                    <RiTelegramLine size={28}/>
-                </Button>
-            </DialogTrigger>
-            {!userInfo?.telegramLoggedIn ?
-                <DialogContent className="sm:max-w-[425px]">
+        <>
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>
                         <div className="flex flex-col items-center">
@@ -244,48 +204,43 @@ function TelegramLogin() {
                         </div>
                     )}
                 </div>
-                <DialogFooter>
+                <DialogFooter className="flex flex-row sm:justify-between">
                     {!isCodeSent ? (
-                        <button
-                            onClick={!twoFactorEnabled ? handleSendCode : handleSendCodeWithPassword}
-                            type="submit"
-                            className="border-2 bg-gray-400 rounded-md text-white p-1">
-                            {!twoFactorEnabled ? "Send Code" : "Login with Password"}
-                        </button>
+                            <>
+                                <Button className="flex"
+                                        onClick={()=> setSelectLogin(false)}>
+                                    Back
+                                </Button>
+                                <Button className="flex"
+                                        onClick={!twoFactorEnabled ? handleSendCode : handleSendCodeWithPassword}
+                                        type="submit">
+                                    {!twoFactorEnabled ? "Send Code" : "Login with Password"}
+                                </Button>
+                            </>
                     ) : (
-                        <div className="flex flex-row justify-between">
-                            <button
-                                className="border-1 bg-gray-400 rounded-md text-white p-1 mr-2 hover:bg-gray-600"
+                        <>
+                        <Button className="flex"
+                                onClick={()=> setIsCodeSent(false)}>
+                            Back
+                        </Button>
+                        <div className=" w-[150px] flex flex-row justify-between">
+                            <Button className="flex"
                                 onClick={handleSendCode}
                                 type="submit">
-                                Retry Send Code
-                            </button>
-                            <button
-                                className="border-1 bg-gray-400 rounded-md text-white p-1 hover:bg-gray-600"
+                                Retry
+                            </Button>
+                            <Button className="flex"
                                 onClick={handleSubmitCode}
                                 type="submit">
-                                Verify Code
-                            </button>
+                                Verify
+                            </Button>
                         </div>
+                        </>
                     )}
                 </DialogFooter>
             </DialogContent>
-                : <DialogContent className="sm:max-w-605px">
-                    <DialogHeader>
-                        <DialogTitle>
-                            <div className="flex flex-col items-center">
-                                <RiTelegramLine size={50} color="#1b86c7c7"/>
-                                <h1 className="text-xl">Select Chats</h1>
-                            </div>
-                        </DialogTitle>
-                        <TelegramMessageComponent conversations={conversations} setFiltered={setFiltered} filtered={filtered} fetching={fetching}/>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button type="submit" onClick={handleProceed}>Proceed</Button>
-                    </DialogFooter>
-                </DialogContent>}
-        </Dialog>
+        </>
     );
 }
 
-export default TelegramLogin;
+export default Login;

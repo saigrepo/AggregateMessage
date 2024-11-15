@@ -25,24 +25,24 @@ export const createConversation = (userId: UUID , token: string) => async (dispa
     }
 };
 
-export const createGroupConversation = (data: GroupConversationRequestDTO, token: string) => async (dispatch: AppDispatch): Promise<void> => {
-    try {
-        const res: Response = await fetch(`${HOST}/${CONVERSATION_PATH}/group`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `${AUTHORIZATION_PREFIX}${token}`,
-            },
-            body: JSON.stringify(data),
-        });
-
-        const resData: ConversationDTO = await res.json();
-        console.log('Created group conversation: ', resData);
-        dispatch({type: actionTypes.CREATE_GROUP, payload: resData});
-    } catch (error: any) {
-        console.error('Creating group conversation failed: ', error);
-    }
-};
+// export const createGroupConversation = (data: GroupConversationRequestDTO, token: string) => async (dispatch: AppDispatch): Promise<void> => {
+//     try {
+//         const res: Response = await fetch(`${HOST}/${CONVERSATION_PATH}/group`, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//                 Authorization: `${AUTHORIZATION_PREFIX}${token}`,
+//             },
+//             body: JSON.stringify(data),
+//         });
+//
+//         const resData: ConversationDTO = await res.json();
+//         console.log('Created group conversation: ', resData);
+//         dispatch({type: actionTypes.CREATE_GROUP, payload: resData});
+//     } catch (error: any) {
+//         console.error('Creating group conversation failed: ', error);
+//     }
+// };
 
 export const getUserConversations = (token: string) => async (dispatch: AppDispatch): Promise<void> => {
     try {

@@ -1,11 +1,12 @@
 import Auth from "./pages/auth/Auth.tsx";
 import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
-import Message from "./pages/messages/Message.tsx";
+import Message from "./pages/messages/Main.tsx";
 import {useAppStore} from "./slices";
 import {useEffect, useState} from "react";
 import apiClient from "./lib/api-client.ts";
 import {CURRENT_USER_ROUTE} from "./utils/Constants.ts";
 import Profile from "./pages/profile/Profile.tsx";
+import MainComponent from "./pages/messages/Main.tsx";
 
 function App() {
     const { userInfo, setUserInfo } = useAppStore();
@@ -56,7 +57,7 @@ function App() {
             if(!userInfo?.userProfileCreated) {
                 return <Navigate to='/profile' />
             }
-            return <Navigate to='/MessageComponent' />
+            return <Navigate to='/MainComponent' />
         }
         return children;
     };
@@ -68,8 +69,8 @@ function App() {
             <Route path="/auth" element={
                 <AuthedRoute><Auth/></AuthedRoute>
             } />
-            <Route path="/MessageComponent" element={
-                <PrivateRoute><Message/></PrivateRoute>
+            <Route path="/MainComponent" element={
+                <PrivateRoute><MainComponent /></PrivateRoute>
             } />
             <Route path="/profile" element={
                 <PrivateRoute><Profile/></PrivateRoute>

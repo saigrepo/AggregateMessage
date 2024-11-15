@@ -14,8 +14,7 @@ const ConversationCard = ({ conv, onSelectConversationClick, userInfo, selectedC
 
     const setDefaultConvName = (conv: ConversationDTO) => {
         if(!conv?.conversationName) {
-            const user = conv.users.filter((user) => user.userId)[0];
-            return user.firstName +" " + user.lastName;
+            return conv.users.filter((user) => user.userId).map((user) => user.firstName).join(" || ");
         }
     }
 
@@ -52,7 +51,7 @@ const ConversationCard = ({ conv, onSelectConversationClick, userInfo, selectedC
                 <div key={conv?.id} className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-white mr-2">{getInitials(conv)}</div>
                 <div className={`flex-1 min-w-0`}>
                     <div className="flex justify-between items-baseline">
-                        <h3 className="font-medium text-sm truncate">{setDefaultConvName(conv)}</h3>
+                        <h3 className="font-medium text-sm truncate pr-1">{setDefaultConvName(conv)}</h3>
                         <span className={`text-xs p-1  ${getUnreadCount(conv) > 0 ? 'border-1 rounded bg-green-200 text-black-900' : 'text-gray-500'} ml-2`}>
                                     {getUnreadCount(conv) > 0 ? `${getUnreadCount(conv)}` : 'All read'}
                                 </span>
