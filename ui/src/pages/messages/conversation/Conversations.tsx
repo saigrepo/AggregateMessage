@@ -1,11 +1,7 @@
-import React, {useState, useRef, useEffect, useCallback} from "react";
-import {Menu, Search, X} from 'lucide-react';
+import React, {useEffect, useRef, useState} from "react";
+import {Search} from 'lucide-react';
 import {useAppStore} from "../../../slices";
 import ConversationCard from "../cards/ConversationCard.tsx";
-import { debounce } from 'lodash';
-import apiClient from "../../../lib/api-client.ts";
-import {SEARCH_CONTACTS_ROUTE} from "../../../utils/Constants.ts";
-import {Contact} from "../../../models/model-types.ts";
 
 const Conversations = ({ conversations, onSelectConversationClick, selectedConvId, messageTitle }) => {
     const {userInfo} = useAppStore();

@@ -2,15 +2,11 @@ import React, {useEffect, useState} from 'react';
 import Conversations from "./conversation/Conversations.tsx";
 import ChatArea from "./ChatArea.tsx";
 import SearchUsers from "./SearchUsers.tsx";
-import {useDispatch, useSelector} from "react-redux";
-import {AppDispatch, RootState} from "../../redux/Store.ts";
-import {useAppStore} from "../../slices";
-import {Contact} from "../../models/model-types.ts";
-import {useNavigate} from "react-router-dom";
+import {useSelector} from "react-redux";
+import {RootState} from "../../redux/Store.ts";
 import {Client, over, Subscription} from "stompjs";
 import {ConversationDTO} from "../../redux/conversation/ConversationModel.ts";
-import {MessageDTO, WebSocketMessageDTO} from "../../redux/message/MessageModel.ts";
-import {toast} from "sonner";
+import {WebSocketMessageDTO} from "../../redux/message/MessageModel.ts";
 import {
     createConversation,
     getUserConversations,

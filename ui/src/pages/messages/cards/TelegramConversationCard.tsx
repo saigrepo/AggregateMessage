@@ -5,35 +5,14 @@ import {ConversationDTO} from "../../../redux/conversation/ConversationModel.ts"
 const ConversationCard = ({ conv, onSelectConversationClick, userInfo, selectedConvId }) => {
     const [hoveredConvId, setHoveredConvId] = useState(null);
 
-    const getInitials = (conv: ConversationDTO) => {
-        if(conv?.conversationName != null ){
-            return (conv?.conversationName.charAt(0))?.toUpperCase();
-        }
-        return conv?.users[0].firstName.charAt(0).toUpperCase();
+    const getInitials = (conv) => {
+        return conv.title.charAt(0);
     }
 
-    const setDefaultConvName = (conv: ConversationDTO) => {
-        if(!conv?.conversationName) {
-            return  conv.users.filter((user) => user.userId != userInfo.userId)[0].firstName;
-        }
-    }
-
-    const getLastMessage = (conv: ConversationDTO) => {
-        return conv.messages.length > 0 ? conv.messages.at(-1)?.content.substring(0, 35) : "placeholder dummy last message" ;
-    }
-
-
-    const isLastMessageReadByUser = (conv: ConversationDTO) => {
-        const lastMessage = conv.messages.length > 0 ? conv.messages.at(-1) : null;
-        if (lastMessage) {
-            return lastMessage.readBy.includes(userInfo.userId);
-        }
-        return true; // If no messages, we consider it "read"
+    const isLastMessageReadByUser = (conv) => {
+        return true;
     };
 
-    const getUnreadCount = (conv: ConversationDTO) => {
-        return conv.messages.filter((msg) => !msg.readBy.includes(userInfo.userId)).length;
-    };
     const handleDeleteClick = (convId) => {
         console.log("deleted");
     };
@@ -50,13 +29,13 @@ const ConversationCard = ({ conv, onSelectConversationClick, userInfo, selectedC
                 <div key={conv?.id} className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-white mr-2">{getInitials(conv)}</div>
                 <div className={`flex-1 min-w-0`}>
                     <div className="flex justify-between items-baseline">
-                        <h3 className="font-medium text-sm truncate pr-1">{setDefaultConvName(conv)}</h3>
-                        <span className={`text-xs p-1  ${getUnreadCount(conv) > 0 ? 'border-1 rounded bg-green-200 text-black-900' : 'text-gray-500'} ml-2`}>
-                                    {getUnreadCount(conv) > 0 ? `${getUnreadCount(conv)}` : 'All read'}
+                        <h3 className="font-medium text-sm truncate pr-1">{conv.title}</h3>
+                        <span className={`text-xs p-1  ${conv.unreadCount > 0 ? 'border-1 rounded bg-green-200 text-black-900' : 'text-gray-500'} ml-2`}>
+                                    {conv.unreadCount > 0 ? `${conv.unreadCount}` : 'All read'}
                                 </span>
                     </div>
                     <p className={`text-sm mt-1 ${isLastMessageReadByUser(conv) ? 'text-gray-500' : 'text-black-900'} truncate`}>
-                        {getLastMessage(conv)}
+                        {conv.lastMessage}
                     </p>
                 </div>
             </div>

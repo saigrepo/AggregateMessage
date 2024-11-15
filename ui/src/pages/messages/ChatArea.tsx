@@ -1,10 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Send } from "lucide-react";
-import { Textarea } from "../../components/ui/textarea.tsx";
+import React, {useEffect, useRef, useState} from "react";
+import {Send} from "lucide-react";
+import {Textarea} from "../../components/ui/textarea.tsx";
 import MessageBubble from "./cards/MessageBubble.tsx";
-import { MessageDTO } from "../../redux/message/MessageModel.ts";
+import {MessageDTO} from "../../redux/message/MessageModel.ts";
 import Upload from "../upload/upload.tsx";
-import { MdOutlineGeneratingTokens } from "react-icons/md";
 import {TextVariation} from "./conversation/TextVariation.tsx";
 
 
@@ -66,7 +65,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
                     messages.map((msg) => (
                         <MessageBubble
                             key={msg?.id}
-                            message={msg}
+                            messageDate={msg.timeStamp} messageId={msg?.user.userId} messageContent={msg.content}
                             currentUserId={currentUserId}
                         />
                     ))

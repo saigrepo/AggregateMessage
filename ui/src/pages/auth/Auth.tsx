@@ -10,8 +10,6 @@ import {LOGIN_ROUTE, SIGNUP_ROUTE} from "../../utils/Constants.ts";
 import {useNavigate} from "react-router-dom";
 import {useAppStore} from "../../slices";
 import {Simulate} from "react-dom/test-utils";
-import waiting = Simulate.waiting;
-import axios from "axios";
 import {GoogleLogin, GoogleOAuthProvider} from "@react-oauth/google";
 
 function Auth() {

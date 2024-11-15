@@ -1,7 +1,5 @@
 import io from "socket.io-client";
 import React, {useEffect, useState} from "react";
-import axios from "axios";
-import {useAppStore} from "../../slices";
 import {Checkbox} from "../../components/ui/checkbox.tsx";
 import {Check, Search} from "lucide-react";
 import {TelegramConversation} from "../../models/model-types.ts";
@@ -11,7 +9,7 @@ import {DialogTitle} from "@radix-ui/react-dialog";
 import {RiTelegramLine} from "react-icons/ri";
 import {Button} from "../../components/ui/button.tsx";
 
-function GetContactsTelegramComponent({conversations, filtered, setFiltered, fetching, handleProceed, setLoadTeleConv}) {
+function ContactsComponent({conversations, filtered, setFiltered, fetching, handleProceed, setLoadTeleConv}) {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [loadConv, setLoadConv] = useState<TelegramConversation[]>(conversations);
@@ -78,6 +76,9 @@ function GetContactsTelegramComponent({conversations, filtered, setFiltered, fet
         if (currentPage > 1) setCurrentPage((prev) => prev - 1);
     };
 
+    const getLastMessage = (conversation) =>{
+        return conversation?.lastMessage ? conversation?.lastMessage?.substring(0,100) +"..." : "No Messages";
+    }
 
     return (
         <DialogContent className="sm:max-w-605px">
@@ -96,8 +97,7 @@ function GetContactsTelegramComponent({conversations, filtered, setFiltered, fet
                         :
                         <>
                             <div className="flex flex-col justify-center overflow-y-auto mx-10" >
-
-                                <div className="my-3 mx-10 relative">
+                                <div className="my-3 mx-10 flex flex-row relative">
                                     <Checkbox className="absolute left-[-40px] top-2.5"
                                               key="select-all"
                                               onCheckedChange={(checked) => handleSelectAll(checked)}
@@ -121,29 +121,25 @@ function GetContactsTelegramComponent({conversations, filtered, setFiltered, fet
                                         />
                                         <div className="flex flex-col items-stretch">
                                             <label className="text-gray-700 text-[1rem] flex-grow">{conversation.title || "Unnamed Chat/Conversation"}</label>
-                                            <span className="text-gray-300 text-[10px] flex-grow">{conversation?.lastMessage || "No recent message"}</span>
+                                            <span className="text-gray-300 text-[10px] flex-grow">{getLastMessage(conversation)}</span>
                                         </div>
                                         {filtered.includes(conversation.id) && (
                                             <Check className="w-4 h-4 text-green-500" />
                                         )}
                                     </div>
                                 ))}
-                                <div className="flex flex-row p-2 justify-center items-center">
-                                    <h3>Selected No. Contacts to Import</h3>
-                                    <span className="mx-2 text-[1.25rem]">{filtered.length}</span>
-                                </div>
-                                <div className="flex justify-around items-center mt-4">
+                                <div className="flex justify-around items-center ml-5 mt-3">
                                     <button
                                         onClick={goToPreviousPage}
                                         disabled={currentPage === 1}
-                                        className="px-3 py-1 rounded bg-telegram-1 text-white hover:bg-indigo-400 disabled:bg-gray-300">
+                                        className=" flex p-2 py-1 rounded bg-telegram-1 text-white hover:bg-indigo-400 disabled:bg-gray-300">
                                         Previous
                                     </button>
-                                    <span className="text-gray-500 m-1">Page {currentPage} of {totalPages}</span>
+                                    <span className="flex text-gray-500 p-3">{currentPage} of {totalPages}</span>
                                     <button
                                         onClick={goToNextPage}
                                         disabled={currentPage === totalPages}
-                                        className="px-3 py-1 rounded bg-telegram-1 text-white hover:bg-indigo-400 disabled:bg-gray-300">
+                                        className="flex p-2 py-1 rounded bg-telegram-1 text-white hover:bg-indigo-400 disabled:bg-gray-300">
                                         Next
                                     </button>
                                 </div>
@@ -164,4 +160,4 @@ function GetContactsTelegramComponent({conversations, filtered, setFiltered, fet
 
 }
 
-export default GetContactsTelegramComponent;
+export default ContactsComponent;

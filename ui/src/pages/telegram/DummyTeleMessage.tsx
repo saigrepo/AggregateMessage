@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import io from "socket.io-client";
 import {Card} from "@material-tailwind/react";
+import {useAppStore} from "../../slices";
 
 function DummyTeleMessage({teleConv}) {
     const [conversations, setConversations] = useState([]);
@@ -8,6 +9,7 @@ function DummyTeleMessage({teleConv}) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>({});
+    const {userInfo} = useAppStore();
     const socket = io("http://localhost:5400", {
         transports: ["websocket"],
     });
@@ -17,13 +19,12 @@ function DummyTeleMessage({teleConv}) {
     };
 
     useEffect(() => {
-        console.log("messages");
-        console.log(messages);
+        setConversations(teleConv);
     }, [messages]);
 
 
     useEffect(() => {
-        setConversations(teleConv);
+
         // Socket event listeners
         socket.on('telegram-message', (message) => {
             if (selectedChat && message.chatId === selectedChat.id.toString()) {
@@ -43,22 +44,22 @@ function DummyTeleMessage({teleConv}) {
             alert(error.error);
         });
 
-        socket.on('chat-history', (history) => {
-            setMessages(history);
+        socket.on('chat-history', (messages) => {
+            console.log(messages)
+            setMessages(messages);
             scrollToBottom();
         });
 
-        return () => {
+        socket.on('disconnect',  () => {
             socket.off('telegram-message');
             socket.off('message-sent');
             socket.off('message-error');
             socket.off('chat-history');
-        };
-    }, [selectedChat]);
+        });
+    }, [selectedChat, messages, newMessage]);
 
     const handleChatSelect = (chat) => {
         setSelectedChat(chat);
-        setMessages([]);
         socket.emit('get-chat-history', chat.id);
     };
 
@@ -117,12 +118,12 @@ function DummyTeleMessage({teleConv}) {
                                 <div
                                     key={index}
                                     className={`mb-4 ${
-                                        message.senderId === 'self' ? 'text-right' : 'text-left'
+                                        message.senderId === userInfo?.telegramId ? 'text-right' : 'text-left'
                                     }`}
                                 >
                                     <div
                                         className={`inline-block p-2 rounded-lg ${
-                                            message.senderId === 'self'
+                                            message.senderId === userInfo?.telegramId
                                                 ? 'bg-blue-500 text-white'
                                                 : 'bg-gray-200'
                                         }`}
@@ -148,8 +149,7 @@ function DummyTeleMessage({teleConv}) {
                                 />
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-r hover:bg-blue-600"
-                                >
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-r hover:bg-blue-600">
                                     Send
                                 </button>
                             </div>

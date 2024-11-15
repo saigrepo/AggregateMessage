@@ -1,7 +1,8 @@
 const { TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions");
-const { NewMessage } = require("telegram/events");
+const { NewMessage} = require("telegram/events");
 const config = require('../config');
+const {message} = require("telegram/client");
 
 class TelegramService {
     constructor() {
@@ -31,17 +32,31 @@ class TelegramService {
             messageId: message.id,
             chatId: message.chatId.toString(),
             senderId: message.senderId?.toString(),
+            receiverId: message.peerId?.userId?.toString(),
             message: message.text,
             timestamp: new Date(message.date * 1000)
         };
     }
 
+    async getCurrentUser() {
+        if(!this.client.connected) {
+            await this.connect();
+        }
+        return (await this.client.getMe())?.id;
+    }
+
     async sendMessage(chatId, message) {
+        if(!this.client.connected) {
+            await this.connect();
+        }
         const result = await this.client.sendMessage(chatId, { message });
         return this.formatMessage(result);
     }
 
-    async getChatHistory(chatId, limit = 50) {
+    async getChatHistory(chatId, limit = 10) {
+        if(!this.client.connected) {
+            await this.connect();
+        }
         const messages = await this.client.getMessages(chatId, { limit });
         return messages.map(msg => this.formatMessage(msg));
     }
@@ -55,10 +70,9 @@ class TelegramService {
         return result.map(dialog => ({
             id: dialog.id,
             title: dialog.title,
-            lastMessage: dialog.lastMessage ? dialog.lastMessage.message : null,
-            date: dialog.lastMessage ? dialog.lastMessage.date : null,
-            unreadCount: dialog.unreadCount,
-            version: dialog.version
+            lastMessage: dialog.message ? dialog.message.message : null,
+            date: dialog.message ? dialog.message.date : null,
+            unreadCount: dialog.unreadCount
         }));
     }
 
@@ -72,21 +86,29 @@ class TelegramService {
     }
 
     async verifyLoginCode(params) {
-        await this.connect();
         const { phoneNumber, phoneCode } = params;
-        await this.client.signInUser(
-            { apiId: config.telegram.apiId, apiHash: config.telegram.apiHash },
-            {
-                phoneNumber,
-                phoneCode: () => phoneCode,
-                onError: (err) => { throw err; }
+        try {
+            await this.connect();
+            await this.client.signInUser(
+                { apiId: config.telegram.apiId, apiHash: config.telegram.apiHash },
+                {
+                    phoneNumber,
+                    phoneCode: () => phoneCode,
+                    onError: (err) => { throw err; }
+                }
+            );
+            const user = await this.client.getMe();
+            return {token: this.client.session.save(), telegramId: user?.id};
+        } catch (error) {
+            if(error.code == 420 && error.message.includes('seconds')) {
+                return {success: false, message: error.message}
             }
-        );
-        return this.client.session.save();
+        }
     }
 
     async verify2FAPassword(params) {
         const { phoneNumber, phoneCode, phoneCodeHash, password } = params;
+        await this.connect();
         await this.client.signInWithPassword(
             { apiId: config.telegram.apiId, apiHash: config.telegram.apiHash },
             {

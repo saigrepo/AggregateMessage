@@ -129,8 +129,8 @@ function Login({setIsOpen, setSelectLogin, setLoadTeleConv}) {
             const data = await response.json();
             if (data.success) {
                 toast.success("Successfully logged in!");
-                localStorage.setItem("telegramToken", data?.sessionString);
-                setUserInfo({...userInfo, telegramSessionString: data?.sessionString, telegramLoggedIn: true});
+                localStorage.setItem("telegramToken", data?.token);
+                setUserInfo({...userInfo, telegramSessionString: data?.token, telegramId: data?.telegramId, telegramLoggedIn: true});
                 setSelectLogin(false);
                 setLoadTeleConv(true);
                 toast.success("Telegram Sign up success full for user");

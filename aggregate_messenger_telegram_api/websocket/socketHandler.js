@@ -35,6 +35,8 @@ class SocketHandler {
     async handleGetChatHistory(socket, chatId) {
         try {
             const messages = await this.telegramService.getChatHistory(chatId);
+            messages.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+            console.log(messages);
             socket.emit('chat-history', messages);
         } catch (error) {
             console.error('Error fetching message history:', error);

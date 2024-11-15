@@ -1,12 +1,12 @@
 import Auth from "./pages/auth/Auth.tsx";
 import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
-import Message from "./pages/messages/Main.tsx";
+import MainComponent from "./pages/messages/Main.tsx";
 import {useAppStore} from "./slices";
 import {useEffect, useState} from "react";
 import apiClient from "./lib/api-client.ts";
 import {CURRENT_USER_ROUTE} from "./utils/Constants.ts";
 import Profile from "./pages/profile/Profile.tsx";
-import MainComponent from "./pages/messages/Main.tsx";
+import axios from "axios";
 
 function App() {
     const { userInfo, setUserInfo } = useAppStore();
@@ -19,7 +19,8 @@ function App() {
                 if(resp.status==200 && resp.data.userId) {
                     if(localStorage.getItem("telegramToken")!=null) {
                         console.log(userInfo);
-                        setUserInfo({...resp?.data, telegramSessionString: localStorage.getItem("telegramToken"), telegramLoggedIn: true});
+                        const TeleResponse = await axios.get("http://localhost:5400/api/telegram-current-user");
+                        setUserInfo({...resp?.data, telegramSessionString: localStorage.getItem("telegramToken"), telegramId:TeleResponse?.data.telegramId,telegramLoggedIn: true});
                     } else {
                         setUserInfo(resp.data);
                     }

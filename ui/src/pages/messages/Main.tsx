@@ -20,12 +20,12 @@ import {createMessage, getAllMessages} from "../../redux/message/MessageAction.t
 import Conversations from "./conversation/Conversations.tsx";
 import ChatArea from "./ChatArea.tsx";
 import Dashboard from "../telegram/Dashboard.tsx";
-import TelegramMessageComponent from "../telegram/GetContactsTelegramComponent.tsx";
+import TelegramMessageComponent from "../telegram/ContactsComponent.tsx";
 import apiClient from "../../lib/api-client.ts";
 import {HiSwitchHorizontal} from "react-icons/hi";
 import MessageArea from "./MessageArea.tsx";
 import {Button} from "../../components/ui/button.tsx";
-import TeleMessageArea from "../telegram/TeleMessageArea.tsx";
+import TelegramConversations from "../telegram/TelegramConversations.tsx";
 
 
 function MainComponent() {
@@ -92,8 +92,11 @@ function MainComponent() {
                         <Dashboard setTelegramConv={setTelegramConv}/>
                     </div>
                     <div className="flex flex-col items-center justify-between h-[100px]">
-                        <Button variant="outline" className="border-0 bg-transparent" onClick={() => setShowTelegram((prevState) => !prevState)}>
+                        <Button variant="outline"  className="border-0 bg-transparent" onClick={() => setShowTelegram((prevState) => !prevState)}>
                             <HiSwitchHorizontal size={28} />
+                            <span className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                    Next (Not Yet Enabled)
+                </span>
                         </Button>
                         <Button variant="outline" className="mb-2.5 border-0  bg-transparent" onClick={handleLogOut}>
                             <RiLogoutCircleRLine size={28} />
@@ -106,7 +109,7 @@ function MainComponent() {
                             token={token} conversationState={conversationState} currentConversation={currentConversation}/>
                     ) :
                     <>
-                        <TeleMessageArea telegramConversations={telegramConv}/>
+                        <TelegramConversations conversations={telegramConv} messageTitle="Telegram"/>
                     </>}
             </>
             )}
