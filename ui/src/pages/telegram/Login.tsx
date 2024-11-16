@@ -31,6 +31,7 @@ function Login({setIsOpen, setSelectLogin, setLoadTeleConv}) {
         e.preventDefault();
         setLoading(true);
         try {
+            const sessionString = localStorage.getItem("telegramToken")
             const response = await fetch("http://localhost:5400/api/telegram-login", {
                 method: "POST",
                 headers: {
@@ -38,13 +39,18 @@ function Login({setIsOpen, setSelectLogin, setLoadTeleConv}) {
                 },
                 body: JSON.stringify({
                     phoneNumber,
+                    sessionString
                 }),
             });
 
             const data = await response.json();
             if (data.success) {
-                setIsCodeSent(true);
-                setPhoneCodeHash(data.phoneCodeHash);
+                if(data?.alreadyConnected) {
+                    setUserInfo({...userInfo, telegramSessionString: sessionString, telegramId: data?.telegramId, telegramLoggedIn: true});
+                } else{
+                    setIsCodeSent(true);
+                    setPhoneCodeHash(data.phoneCodeHash);
+                }
             } else {
                 toast.error("Failed to send code. Please try again.");
             }
@@ -130,6 +136,7 @@ function Login({setIsOpen, setSelectLogin, setLoadTeleConv}) {
             if (data.success) {
                 toast.success("Successfully logged in!");
                 localStorage.setItem("telegramToken", data?.token);
+                await persistToDb(data?.telegramId, phoneNumber)
                 setUserInfo({...userInfo, telegramSessionString: data?.token, telegramId: data?.telegramId, telegramLoggedIn: true});
                 setSelectLogin(false);
                 setLoadTeleConv(true);
@@ -143,6 +150,28 @@ function Login({setIsOpen, setSelectLogin, setLoadTeleConv}) {
             toast.error("Failed to login. Please try again.");
         }
     };
+
+    const persistToDb = async (telegramId, phoneNumber) => {
+        try {
+            const emailId = userInfo.userEmail;
+            const res = await fetch("http://localhost:5400/api/telegram-insert-user", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    telegramId,
+                    phoneNumber,
+                    emailId
+                }),
+            });
+            if(!(await res.json())?.success) {
+                console.error("error inserting the data");
+            }
+        } catch (err) {
+            console.error("error was thrown wile inserting user", err.messages);
+        }
+    }
 
 
     return (

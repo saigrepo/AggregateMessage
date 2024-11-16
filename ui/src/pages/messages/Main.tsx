@@ -2,26 +2,15 @@ import {useAppStore} from "../../slices";
 import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {toast} from "sonner";
-import {AUTHORIZATION_PREFIX} from "../../utils/Constants.ts";
 import SearchUsers from "./SearchUsers.tsx";
 import {Contact} from "../../models/model-types.ts";
-import {RiLogoutCircleRLine, RiSwap2Fill} from "react-icons/ri";
+import {RiLogoutCircleRLine} from "react-icons/ri";
 import {useDispatch, useSelector} from "react-redux";
 import {AppDispatch, RootState} from "../../redux/Store.ts";
-import {
-    createConversation,
-    getUserConversations,
-    markConversationAsRead
-} from "../../redux/conversation/ConversationAction.ts";
-import {Client, over, Subscription} from "stompjs";
-import {MessageDTO, WebSocketMessageDTO} from "../../redux/message/MessageModel.ts";
+import {createConversation} from "../../redux/conversation/ConversationAction.ts";
+import {MessageDTO} from "../../redux/message/MessageModel.ts";
 import {ConversationDTO} from "../../redux/conversation/ConversationModel.ts";
-import {createMessage, getAllMessages} from "../../redux/message/MessageAction.ts";
-import Conversations from "./conversation/Conversations.tsx";
-import ChatArea from "./ChatArea.tsx";
 import Dashboard from "../telegram/Dashboard.tsx";
-import TelegramMessageComponent from "../telegram/ContactsComponent.tsx";
-import apiClient from "../../lib/api-client.ts";
 import {HiSwitchHorizontal} from "react-icons/hi";
 import MessageArea from "./MessageArea.tsx";
 import {Button} from "../../components/ui/button.tsx";
@@ -41,12 +30,13 @@ function MainComponent() {
     const conversationState = useSelector((state: RootState) => state?.conversation);
     const dispatch: AppDispatch = useDispatch();
     const token: string | null = localStorage.getItem("jwtToken");
+    const [teleConv, setTeleConv] = useState([]);
 
 
     useEffect(() => {
-        console.log("inside");
-        console.log(telegramConv);
-    }, [setTelegramConv, telegramConv]);
+        console.log('db conv')
+        getConv();
+    }, []);
 
     useEffect(() => {
         if (!userInfo.userProfileCreated) {
@@ -77,6 +67,21 @@ function MainComponent() {
         console.log(conversationState?.createdConversation);
     }
 
+    const getConv = async () => {
+        try {
+            const res = await fetch("http://localhost:5400/api/telegram-get-conversations",
+                {
+                    method: "GET"
+                });
+            const data = await res.json();
+            if(data?.success) {
+                setTeleConv([...data?.conversations]);
+            }
+        } catch (err) {
+            console.error("error in getCOnv metthd", err.message);
+        }
+    }
+
 
     return (
         <div className={`flex h-[95vh] w-[95vw] bg-bg-tones-2 border-4 rounded-lg border-white-800 ml-10 mt-5`}>
@@ -89,10 +94,10 @@ function MainComponent() {
                     <div className="flex flex-col items-center justify-between h-[180px]">
                         <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-transparent">{getInitials()}</div>
                         <SearchUsers onContactsSelected={handleSelectedContacts} setSelectedContacts={setSelectedContacts} selectedContacts={selectedContacts} />
-                        <Dashboard setTelegramConv={setTelegramConv}/>
+                        <Dashboard setTelegramConv={setTelegramConv} dbConv={teleConv}/>
                     </div>
                     <div className="flex flex-col items-center justify-between h-[100px]">
-                        <Button variant="outline"  className="border-0 bg-transparent" onClick={() => setShowTelegram((prevState) => !prevState)}>
+                        <Button variant="outline" disabled={!userInfo?.telegramLoggedIn} className="border-0 bg-transparent" onClick={() => setShowTelegram((prevState) => !prevState)}>
                             <HiSwitchHorizontal size={28} />
                             <span className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                     Next (Not Yet Enabled)
@@ -109,7 +114,7 @@ function MainComponent() {
                             token={token} conversationState={conversationState} currentConversation={currentConversation}/>
                     ) :
                     <>
-                        <TelegramConversations conversations={telegramConv} messageTitle="Telegram"/>
+                        <TelegramConversations conversations={telegramConv} messageTitle="Telegram" dbConv={teleConv}/>
                     </>}
             </>
             )}

@@ -62,7 +62,6 @@ class TelegramService {
     }
 
     async getConversations() {
-        await this.connect();
         const result = await this.client.getDialogs({
             apiId: config.telegram.apiId,
             apiHash: config.telegram.apiHash
@@ -77,18 +76,27 @@ class TelegramService {
     }
 
     async sendLoginCode(phoneNumber) {
-        await this.connect();
-        const result = await this.client.sendCode({
-            apiId: config.telegram.apiId,
-            apiHash: config.telegram.apiHash,
-        }, phoneNumber);
-        return result;
+       try {
+           if(!this.client.connected) {
+               await this.connect();
+           }
+           const result = await this.client.sendCode({
+               apiId: config.telegram.apiId,
+               apiHash: config.telegram.apiHash,
+           }, phoneNumber);
+           return result;
+       } catch (err) {
+           console.error("error in sending code", err);
+           return {success: false, error: err.message}
+       }
     }
 
     async verifyLoginCode(params) {
         const { phoneNumber, phoneCode } = params;
         try {
-            await this.connect();
+            if(!this.client.connected) {
+                await this.connect();
+            }
             await this.client.signInUser(
                 { apiId: config.telegram.apiId, apiHash: config.telegram.apiHash },
                 {
@@ -108,7 +116,9 @@ class TelegramService {
 
     async verify2FAPassword(params) {
         const { phoneNumber, phoneCode, phoneCodeHash, password } = params;
-        await this.connect();
+        if(!this.client.connected) {
+            await this.connect();
+        }
         await this.client.signInWithPassword(
             { apiId: config.telegram.apiId, apiHash: config.telegram.apiHash },
             {

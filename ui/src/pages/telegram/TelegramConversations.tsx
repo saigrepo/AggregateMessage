@@ -7,13 +7,13 @@ import TelegramChatArea from "./TelegramChatArea.tsx";
 import SearchUsers from "../messages/SearchUsers.tsx";
 import Dashboard from "./Dashboard.tsx";
 
-const TelegramConversations = ({ conversations, messageTitle }) => {
+const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
     const {userInfo} = useAppStore();
     const [width, setWidth] = useState(300);
     const sidebarRef = useRef(null);
     const [searchConv, setSearchConv] = useState("");
     const [isResizing, setIsResizing] = useState(false);
-    const [filteredConversations, setFilteredConversations] = useState(conversations);
+    const [filteredConversations, setFilteredConversations] = useState([]);
     const [selectedConv, setSelectedConv] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
@@ -48,25 +48,22 @@ const TelegramConversations = ({ conversations, messageTitle }) => {
         if(conversations && conversations.length > 0) {
             setFilteredConversations(conversations);
         } else {
-            getConv();
+            if(dbConv) {
+                setFilteredConversations((prev) => [...prev, dbConv])
+            }
         }
 
     }, []);
 
-    const getConv = async () => {
-        try {
-            const res = await fetch("http://localhost:5400/api/telegram-get-conversations",
-                {
-                    method: "GET"
-                });
-            const data = await res.json();
-            if(data?.success) {
-                setFilteredConversations(data?.conversations);
-            }
-        } catch (err) {
-            console.error("error in getCOnv metthd", err.message);
+    useEffect(() => {
+        if(conversations && conversations.length > 0) {
+            setFilteredConversations(conversations);
+        } else {
+            setFilteredConversations(dbConv)
         }
-    }
+
+    }, [conversations, messages]);
+
 
     useEffect(() => {
         window.addEventListener("mousemove", resize);
@@ -92,12 +89,20 @@ const TelegramConversations = ({ conversations, messageTitle }) => {
 
 
     useEffect(() => {
-        // Socket event listeners
-        socket.on('telegram-message', (message) => {
-            if (selectedConv && message.chatId === selectedConv.id.toString()) {
-                setMessages(prev => [...prev, message]);
+
+        if (!selectedConv) return;
+
+        socket.emit('get-chat-history', selectedConv.id);
+
+        const handleTelegramMessage = (message) => {
+            if (message.chatId === selectedConv.id.toString()) {
+                setMessages((prev) => [...prev, message]);
             }
-        });
+        };
+
+        const handleChatHistory = (chatMessages) => {
+            setMessages(chatMessages);
+        };
 
         socket.on('message-sent', (message) => {
             if (selectedConv && message.chatId === selectedConv.id.toString()) {
@@ -105,14 +110,8 @@ const TelegramConversations = ({ conversations, messageTitle }) => {
             }
         });
 
-        socket.on('message-error', (error) => {
-            alert(error.error);
-        });
-
-        socket.on('chat-history', (messages) => {
-            console.log(messages)
-            setMessages(messages);
-        });
+        socket.on('telegram-message', handleTelegramMessage);
+        socket.on('chat-history', handleChatHistory);
 
         socket.on('disconnect',  () => {
             socket.off('telegram-message');
@@ -123,20 +122,30 @@ const TelegramConversations = ({ conversations, messageTitle }) => {
     }, [selectedConv]);
 
     const handleChatSelect = (chat) => {
+        if (selectedConv?.id === chat.id) return; // Prevent redundant updates
+
         setSelectedConv(chat);
-        socket.emit('get-chat-history', chat.id);
+        setMessages([]); // Clear messages temporarily while fetching new ones
     };
 
     const handleSendMessage = (e) => {
         if (!newMessage.trim() || !selectedConv) return;
 
-        socket.emit('send-message', {
+        const tempMessage = {
             chatId: selectedConv.id,
-            message: newMessage
-        });
+            message: newMessage,
+            senderId: userInfo?.telegramId,
+            timestamp: Date.now(),
+        };
+
+        // Update the UI optimistically
+        setMessages((prev) => [...prev, tempMessage]);
+
+        socket.emit('send-message', tempMessage);
 
         setNewMessage('');
     };
+
 
     const calculateLastSeen = (dateTime) => {
         const lastSeenDate = new Date(dateTime * 1000);
@@ -173,7 +182,7 @@ const TelegramConversations = ({ conversations, messageTitle }) => {
                 <div className="p-4 border-b sticky top-0 bg-white z-10">
                     <div className="relative">
                         <input
-                            disabled={filteredConversations.length === 0}
+                            disabled={filteredConversations?.length === 0}
                             type="text"
                             placeholder="Search"
                             className="w-full pl-8 pr-4 py-2 rounded-lg bg-bg-tones-3 text-sm"
@@ -184,8 +193,14 @@ const TelegramConversations = ({ conversations, messageTitle }) => {
                     </div>
                 </div>
                 <div key='conv-div-1' className="flex-grow overflow-y-auto divide-y">
-                    {(filteredConversations && filteredConversations.length > 0) ? filteredConversations.map((conv) => (
-                        <TelegramConversationCard key={conv?.id} onSelectConversationClick={handleChatSelect} conv={conv} userInfo={userInfo} selectedConvId={selectedConv?.id} />
+                    {(filteredConversations && filteredConversations?.length > 0) ? filteredConversations.map((conv) => (
+                        <TelegramConversationCard
+                            key={conv?.id}
+                            onSelectConversationClick={handleChatSelect}
+                            conv={conv}
+                            userInfo={userInfo}
+                            selectedConvId={selectedConv?.id}
+                        />
                     )) : <div className="flex flex-wrap justify-center font-semibold mt-40">No Conversation found for the user</div>}
                 </div>
                 <div
@@ -202,7 +217,7 @@ const TelegramConversations = ({ conversations, messageTitle }) => {
                         <p className="text-sm text-gray-500 mx-2">Last seen {calculateLastSeen(selectedConv?.date)}</p>
                     </div>
                 </div>
-                <TelegramChatArea messages={messages} currentUserId={userInfo.telegramId} onSendMessage={handleSendMessage} setMessageInput={newMessage} messageInput={setNewMessage} />
+                <TelegramChatArea messages={messages} currentUserId={userInfo.telegramId} onSendMessage={handleSendMessage} setMessageInput={setNewMessage} messageInput={newMessage} />
             </div>) :
                 (
                     <div className="flex-grow flex items-center justify-center">

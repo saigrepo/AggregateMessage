@@ -3,8 +3,11 @@ const router = express.Router();
 const telegramService = require('../services/telegramService');
 const telegramDbService = require('../services/telegramDbService');
 
-router.get("/api/telegram-conversations", async (req, res, next) => {
+router.post("/api/telegram-conversations", async (req, res, next) => {
   try {
+    if(res.body?.sessionString) {
+      telegramService.stringSession = res.body?.sessionString;
+    }
     await telegramService.connect();
     const conversations = await telegramService.getConversations();
     res.json({ success: true, conversations });
@@ -14,12 +17,18 @@ router.get("/api/telegram-conversations", async (req, res, next) => {
 });
 
 router.post("/api/telegram-login", async (req, res, next) => {
-  try {
-    const { phoneNumber } = req.body;
-    const result = await telegramService.sendLoginCode(phoneNumber);
-    res.json({ success: true, phoneCodeHash: result.phoneCodeHash });
-  } catch (error) {
-    next(error);
+  if(!res.body?.sessionString) {
+    try {
+      const { phoneNumber } = req.body;
+      const result = await telegramService.sendLoginCode(phoneNumber);
+      res.json({ success: true, phoneCodeHash: result.phoneCodeHash });
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    telegramService.stringSession = res.body?.sessionString;
+    await telegramService.connect();
+    res.json({success: true, alreadyConnected: true});
   }
 });
 
@@ -66,6 +75,24 @@ router.get("/api/telegram-get-conversations", async (req, res, next) => {
     res.json({success: true, conversations: response});
   } catch (err) {
     next(err);
+  }
+});
+
+router.post("/api/telegram-insert-user", async (res, req, nxt) => {
+  try {
+    const res =  await telegramDbService.insertIdAndNumber(req.body);
+    res.json({success: true, message: "values inserted to user table successfully"});
+  } catch (err) {
+    nxt(err);
+  }
+});
+
+router.post("/api/telegram-get-user", async (res, req, nxt) => {
+  try {
+    const res =  await telegramDbService.getUserByEmail(req.body);
+    res.json({success: true, ...res});
+  } catch (err) {
+    nxt(err);
   }
 });
 

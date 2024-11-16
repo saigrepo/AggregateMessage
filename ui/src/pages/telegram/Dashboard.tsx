@@ -12,7 +12,7 @@ import {PiUserListFill} from "react-icons/pi";
 import {toast} from "sonner";
 import axios from "axios";
 
-function Dashboard({setTelegramConv}) {
+function Dashboard({setTelegramConv, dbConv}) {
     const [isOpen, setIsOpen] = useState(false);
     const [conversations, setConversations] = useState<TelegramConversation[]>([]);
     const [fetching, setFetching] = useState(false);
@@ -27,8 +27,15 @@ function Dashboard({setTelegramConv}) {
         const fetchConversations = async () => {
             setFetching(true);
             try {
+                const sessionString = localStorage.getItem("telegramToken");
                 const response = await fetch("http://localhost:5400/api/telegram-conversations", {
-                    method: "GET"
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        sessionString,
+                    })
                 });
                 const data = await response.json();
                 if (data.success) {
@@ -50,8 +57,9 @@ function Dashboard({setTelegramConv}) {
                 setFetching(false);
             }
         };
-        console.log(conversations.length);
-        if(userInfo?.telegramLoggedIn && (conversations.length == 0)) {
+        console.log(conversations.length + " "+ userInfo?.telegramLoggedIn);
+        if((userInfo?.telegramLoggedIn || localStorage.getItem("telegramToken")) && (conversations.length == 0)) {
+            console.log(conversations.length);
             fetchConversations();
         }
     }, []);
@@ -113,7 +121,7 @@ function Dashboard({setTelegramConv}) {
                 </DialogContent>
             ) : (selectLogin && !loadTeleConv) ?
                 <Login setIsOpen={setIsOpen} setLoadTeleConv={setLoadTeleConv} disable={!userInfo?.telegramLoggedIn} setSelectLogin={setSelectLogin}/>
-                : <ContactsComponent setLoadTeleConv={setLoadTeleConv} handleProceed={handleProceed} disable={userInfo?.telegramLoggedIn} conversations={conversations} setFiltered={setFiltered} filtered={filtered} fetching={fetching} />
+                : <ContactsComponent dbConv={dbConv} setLoadTeleConv={setLoadTeleConv} handleProceed={handleProceed} disable={userInfo?.telegramLoggedIn} conversations={conversations} setFiltered={setFiltered} filtered={filtered} fetching={fetching} />
             }
         </Dialog>
     );

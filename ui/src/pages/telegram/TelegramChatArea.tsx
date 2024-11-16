@@ -7,8 +7,12 @@ import {Send} from "lucide-react";
 function TelegramChatArea({messages, currentUserId, onSendMessage, messageInput, setMessageInput}) {
     const teleChatEndRef = useRef<HTMLDivElement>({} as HTMLDivElement);
 
+    const scrollToBottom = () => {
+        teleChatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     useEffect(() => {
-        teleChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        scrollToBottom();
     }, [messages]);
 
     const handleSendMessage = (e: React.FormEvent) => {
@@ -31,10 +35,10 @@ function TelegramChatArea({messages, currentUserId, onSendMessage, messageInput,
     return (<>
         <div className="flex-1 overflow-y-auto p-4 bg-bg-tones-2">
             {messages.length > 0 ? (
-                messages.map((msg) => (
+                messages.map((msg, idx) => (
                     <MessageBubble
-                        key={msg?.chatId}
-                        messageDate={msg.date * 1000} messageId={msg?.senderId} messageContent={msg.message}
+                        key={msg?.messageId + idx}
+                        messageDate={msg.timestamp} messageId={msg?.senderId} messageContent={msg.message}
                         currentUserId={currentUserId}
                     />
                 ))

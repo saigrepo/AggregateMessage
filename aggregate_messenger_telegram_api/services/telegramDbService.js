@@ -60,7 +60,11 @@ class TelegramDbService {
     async insertConversation(paramList) {
         const query = `
             INSERT INTO tele_conversation (id, title, last_message, date, unread_count) 
-            VALUES ($1, $2, $3, $4, $5) RETURNING *
+            VALUES ($1, $2, $3, $4, $5) 
+            ON CONFLICT (id)
+                DO UPDATE SET
+                              last_message = EXCLUDED.last_message,
+                              unread_count = EXCLUDED.unread_count;
         `
         try {
             await this.createTable();
@@ -77,6 +81,49 @@ class TelegramDbService {
         } finally {
             await this.pgClient.end();
             console.log("PostgreSQL connection closed")
+        }
+    }
+
+    async createTableUser() {
+        const query = `CREATE TABLE if not exists tele_user (
+            telegram_id varchar(100),
+            phone_number varchar(100),
+            email_id varchar(100)
+        );`;
+        try {
+            await this.pgClient.query(query);
+            console.log("create tele user table");
+        } catch (e) {
+            console.log("error creating table", e.stack);
+        }
+    }
+
+    async insertIdAndNumber(params) {
+        const query = `INSERT INTO tele_user (telegram_id, phone_number)
+                VALUES ($1, $2, $3) RETURNING *`
+        if(!this.pgClient._connected) {
+            await this.connect();
+        }
+        try {
+            await this.createTableUser();
+            const res = await this.pgClient.query(query, [params.telegramId, params.phoneNumber, params.emailId]);
+            console.log(res.rows[0]);
+        } catch (err) {
+            console.error("error iin inserting", err);
+        }
+    }
+
+    async getUserByEmail(params) {
+        const { emailId } = params;
+        const query = `SELECT * FROM tele_user where email_id = ($1)`;
+        if(!this.pgClient._connected) {
+            await this.connect();
+        }
+        try {
+            const res = await this.pgClient.query(query, [emailId]);
+            console.log(res.rows[0]);
+        } catch (err) {
+            console.error("error in retrieving", err);
         }
     }
 }

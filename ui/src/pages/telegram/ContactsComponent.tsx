@@ -9,7 +9,7 @@ import {DialogTitle} from "@radix-ui/react-dialog";
 import {RiTelegramLine} from "react-icons/ri";
 import {Button} from "../../components/ui/button.tsx";
 
-function ContactsComponent({conversations, filtered, setFiltered, fetching, handleProceed, setLoadTeleConv}) {
+function ContactsComponent({conversations, filtered, setFiltered, fetching, handleProceed, setLoadTeleConv, dbConv}) {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [loadConv, setLoadConv] = useState<TelegramConversation[]>(conversations);
@@ -25,6 +25,9 @@ function ContactsComponent({conversations, filtered, setFiltered, fetching, hand
 
     useEffect(() => {
         setLoadConv(conversations);
+        if(dbConv) {
+            setFiltered((prev) => [...prev, ...dbConv]);
+        }
         console.log("Connecting to socket");
         socket.connect();
     }, []);
@@ -48,7 +51,7 @@ function ContactsComponent({conversations, filtered, setFiltered, fetching, hand
 
     const handleCheckboxChange = (conversationId) => {
         setFiltered((prev) =>
-            prev.includes(conversationId)
+            prev.includes(conversationId) || dbConv?.includes(conversationId)
                 ? prev.filter((id) => id !== conversationId)
                 : [...prev, conversationId]
         );
