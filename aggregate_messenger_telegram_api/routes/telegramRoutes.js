@@ -96,5 +96,17 @@ router.post("/api/telegram-get-user", async (res, req, nxt) => {
   }
 });
 
+router.get("/proxy", async (req, res) => {
+  const targetUrl = req.query.url;
+  try {
+    const response = await fetch(targetUrl);
+    const data = await response.text(); // Use `.text()` to forward raw HTML
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error: "Unable to fetch the requested URL." });
+  }
+});
+
 module.exports = router;
 

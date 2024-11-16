@@ -185,7 +185,7 @@ export default function ImageUpload({ listOfuploadfile, uploadTriggered }) {
                             </div>
                         ))}
                         <Button
-                            variant="primary"
+                            variant='outline'
                             onClick={uploadFiles}>
                             Upload
                         </Button>

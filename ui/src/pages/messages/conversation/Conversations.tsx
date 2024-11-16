@@ -59,6 +59,21 @@ const Conversations = ({ conversations, onSelectConversationClick, selectedConvI
         console.log(userInfo);
     }
 
+    const handleMessageRead = (convId: string) => {
+        setFilteredConversations((prev) =>
+            prev.map((conv) => {
+                if (conv.id === convId) {
+                    const updatedMessages = conv.messages.map((msg) =>
+                        msg.readBy.includes(userInfo.userId) ? msg : { ...msg, readBy: [...msg.readBy, userInfo.userId] }
+                    );
+                    return { ...conv, messages: updatedMessages };
+                }
+                return conv;
+            })
+        );
+    };
+
+
     return (
         <div
             ref={sidebarRef}
@@ -83,7 +98,7 @@ const Conversations = ({ conversations, onSelectConversationClick, selectedConvI
             </div>
             <div key='conv-div-1' className="flex-grow overflow-y-auto divide-y">
                 {(filteredConversations && filteredConversations.length > 0) ? filteredConversations.map((conv) => (
-                        <ConversationCard key={conv?.id} onSelectConversationClick={onSelectConversationClick} conv={conv} userInfo={userInfo} selectedConvId={selectedConvId} />
+                        <ConversationCard key={conv?.id} onMessageRead={handleMessageRead} onSelectConversationClick={onSelectConversationClick} conv={conv} userInfo={userInfo} selectedConvId={selectedConvId} />
                     )) : <div className="flex items-center justify-center font-semibold">No Conversation found for the user</div>}
             </div>
             <div

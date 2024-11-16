@@ -17,20 +17,9 @@ function App() {
             try {
                 const resp = await apiClient.get(CURRENT_USER_ROUTE, {withCredentials: true});
                 if(resp.status==200 && resp.data.userId) {
-                    if(localStorage.getItem("telegramToken")!=null) {
-                        console.log(userInfo);
-                        const emailId = resp.data.userEmail;
-                        const teleResponse = await fetch("http://localhost:5400/api/telegram-get-user", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                emailId
-                            })
-                        });
-                        const resData = await teleResponse.json();
-                        setUserInfo({...resp?.data, telegramSessionString: localStorage.getItem("telegramToken"), telegramId:resData?.telegramId, phoneNumber: resData?.phoneNumber, telegramLoggedIn: true});
+                    if(localStorage.getItem("telegramToken")!=null && !userInfo?.telegramId) {
+                        const TeleResponse = await axios.get("http://localhost:5400/api/telegram-current-user");
+                        setUserInfo({...resp?.data, telegramSessionString: localStorage.getItem("telegramToken"), telegramId:TeleResponse?.data.telegramId,telegramLoggedIn: true});
                     } else {
                         setUserInfo(resp.data);
                     }

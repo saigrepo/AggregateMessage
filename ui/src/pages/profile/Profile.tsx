@@ -1,7 +1,7 @@
-import {useCallback, useState} from 'react';
-import { Input } from "../../components/ui/input.tsx";
-import { Label } from "@radix-ui/react-label";
-import { Button } from "../../components/ui/button.tsx";
+import {useEffect, useState} from 'react';
+import {Input} from "../../components/ui/input.tsx";
+import {Label} from "@radix-ui/react-label";
+import {Button} from "../../components/ui/button.tsx";
 import {useAppStore} from "../../slices";
 import apiClient from "../../lib/api-client.ts";
 import {UPDATE_USER_ROUTE} from "../../utils/Constants.ts";
@@ -24,21 +24,24 @@ export default function Profile() {
     const navigate = useNavigate();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [hsl, setHSL] = useState({
-        hue: 0, saturation: 0, light: 0
-    })
-    const selectedColor = hslToHex(hsl.hue, 100, 130);
+    const [color, setColor] = useState("");
 
     const getInitials = () => {
         return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
     };
 
-    const handleHueChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const {id, value} = e.target;
-        setHSL((prevState)=> ({
-            ...prevState, [id]:Number(value)
-        }));
-    }, []);
+    function generateColor(name) {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const color = `#${((hash >> 24) & 0xff).toString(16).padStart(2, '0')}${((hash >> 16) & 0xff).toString(16).padStart(2, '0')}${((hash >> 8) & 0xff).toString(16).padStart(2, '0')}`;
+        return color.slice(0, 7); // Keep it a valid 6-character HEX color
+    }
+
+    useEffect(() => {
+        setColor(generateColor(firstName+" "+lastName))
+    }, [firstName, lastName]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -46,7 +49,7 @@ export default function Profile() {
             const updateUserModel = {
                 "firstName": firstName,
                 "lastName": lastName,
-                "userColor": selectedColor,
+                "userColor": color,
                 "userProfileCreated": true
             };
             const response = await apiClient.put(UPDATE_USER_ROUTE + "/" + userInfo.userId, updateUserModel, {withCredentials: true});
@@ -114,20 +117,17 @@ export default function Profile() {
                             Choose Avatar Color
                         </Label>
                         <input
-                            id="hue"
-                            type="range"
-                            min="0"
-                            max="360"
-                            value={hsl.hue}
-                            onChange={handleHueChange}
-                            className="w-full h-2 bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 rounded-lg appearance-none cursor-pointer"
+                            type="color"
+                            value={color}
+                            onChange={(e) => setColor(e.target.value)}
+                            className="w-full h-4"
                         />
                     </div>
 
                     <div className="flex justify-center">
                         <div
                             className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg"
-                            style={{ backgroundColor: selectedColor }}>
+                            style={{ backgroundColor: color }}>
                             {getInitials()}
                         </div>
                     </div>
@@ -135,8 +135,7 @@ export default function Profile() {
                     <div>
                         <Button
                             type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Save Settings
                         </Button>
                     </div>

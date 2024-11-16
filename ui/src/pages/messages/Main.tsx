@@ -19,7 +19,7 @@ import TelegramConversations from "../telegram/TelegramConversations.tsx";
 
 function MainComponent() {
 
-    const { userInfo, setUserInfo, isLoggedIn } = useAppStore();
+    const { userInfo, setUserInfo } = useAppStore();
     const [loading, setLoading] = useState(false);
     const [showTelegram, setShowTelegram] = useState(false);
     const [telegramConv, setTelegramConv] = useState([]);
@@ -36,10 +36,11 @@ function MainComponent() {
     useEffect(() => {
         console.log('db conv')
         getConv();
+        console.log(userInfo?.userColor)
     }, []);
 
     useEffect(() => {
-        if (!userInfo.userProfileCreated) {
+        if (!userInfo?.userProfileCreated) {
             toast("Profile setup is yet to be completed");
             navigate("/profile");
         }
@@ -54,7 +55,7 @@ function MainComponent() {
 
 
     const getInitials = () => {
-        return userInfo.firstName.charAt(0).toUpperCase() + userInfo.lastName.charAt(0).toUpperCase()
+        return userInfo?.firstName.charAt(0).toUpperCase() + userInfo?.lastName.charAt(0).toUpperCase()
     }
 
     const handleSelectedContacts =() => {
@@ -82,6 +83,16 @@ function MainComponent() {
         }
     }
 
+    const isDarkShade = (hexColor) => {
+        const rgb = hexColor
+            .replace("#", "")
+            .match(/.{1,2}/g)
+            .map((hex) => parseInt(hex, 16));
+        const [r, g, b] = rgb.map((value) => value / 255);
+        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        return luminance < 0.5;
+    };
+
 
     return (
         <div className={`flex h-[95vh] w-[95vw] bg-bg-tones-2 border-4 rounded-lg border-white-800 ml-10 mt-5`}>
@@ -92,7 +103,7 @@ function MainComponent() {
             ) : ( <>
                 <div className="w-15 flex flex-col justify-between py-4 h-full border-r-2 bg-bg-tones-4">
                     <div className="flex flex-col items-center justify-between h-[180px]">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-transparent">{getInitials()}</div>
+                        <div className={`w-10 h-10 font-serif rounded-full flex items-center justify-center border-2 ${isDarkShade ? 'text-white' : 'text-gray-800'}`} style={{backgroundColor: userInfo?.userColor}}>{getInitials()}</div>
                         <SearchUsers onContactsSelected={handleSelectedContacts} setSelectedContacts={setSelectedContacts} selectedContacts={selectedContacts} />
                         <Dashboard setTelegramConv={setTelegramConv} dbConv={teleConv}/>
                     </div>

@@ -120,8 +120,8 @@ function Dashboard({setTelegramConv, dbConv}) {
                     </DialogHeader>
                 </DialogContent>
             ) : (selectLogin && !loadTeleConv) ?
-                <Login setIsOpen={setIsOpen} setLoadTeleConv={setLoadTeleConv} disable={!userInfo?.telegramLoggedIn} setSelectLogin={setSelectLogin}/>
-                : <ContactsComponent dbConv={dbConv} setLoadTeleConv={setLoadTeleConv} handleProceed={handleProceed} disable={userInfo?.telegramLoggedIn} conversations={conversations} setFiltered={setFiltered} filtered={filtered} fetching={fetching} />
+                <Login setIsOpen={setIsOpen} setLoadTeleConv={setLoadTeleConv} setSelectLogin={setSelectLogin}/>
+                : <ContactsComponent dbConv={dbConv} setLoadTeleConv={setLoadTeleConv} handleProceed={handleProceed} conversations={conversations} setFiltered={setFiltered} filtered={filtered} fetching={fetching} />
             }
         </Dialog>
     );

@@ -16,13 +16,12 @@ function Login({setIsOpen, setSelectLogin, setLoadTeleConv}) {
     const [phoneCode, setPhoneCode] = useState("");
     const [isCodeSent, setIsCodeSent] = useState(false);
     const [phoneCodeHash, setPhoneCodeHash] = useState("");
-    const { sessionString, userInfo, setUserInfo } = useAppStore();
+    const { userInfo, setUserInfo } = useAppStore();
     const [loading, setLoading] = useState(false);
 
 
     useEffect(() => {
         console.log("Updated User Info");
-        console.log(sessionString);
         console.log(userInfo);
     }, [userInfo, setUserInfo]);
 

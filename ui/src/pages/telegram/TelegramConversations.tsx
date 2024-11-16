@@ -132,7 +132,7 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
         if (!newMessage.trim() || !selectedConv) return;
 
         const tempMessage = {
-            chatId: selectedConv.id,
+            chatId: selectedConv?.id,
             message: newMessage,
             senderId: userInfo?.telegramId,
             timestamp: Date.now(),
@@ -151,7 +151,7 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
         const lastSeenDate = new Date(dateTime * 1000);
         const currentDate = new Date();
 
-        const diffMs = currentDate - lastSeenDate;
+        const diffMs = currentDate.getTime() - lastSeenDate.getTime();
 
         const diffSeconds = Math.floor(diffMs / 1000);
         const diffMinutes = Math.floor(diffSeconds / 60);
@@ -222,7 +222,7 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
                 (
                     <div className="flex-grow flex items-center justify-center">
                     <p>Select a conversation or start a new one</p>
-                    <Dashboard setTelegramConv={conversations} />
+                    <Dashboard setTelegramConv={conversations} dbConv={dbConv}/>
                     </div>
                 )
             }

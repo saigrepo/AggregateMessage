@@ -1,5 +1,5 @@
-export const HOST = import.meta.env.VITE_SPRING_SERVER_URL as string;
-export const SOCKET_HOST = import.meta.env.VITE_SPRING_SOCKET_URL as string;
+export const HOST = import.meta?.env?.VITE_SPRING_SERVER_URL as string;
+export const SOCKET_HOST = import.meta?.env?.VITE_SPRING_SOCKET_URL as string;
 
 export const AUTH_ROUTES = "api/v1/auth";
 export const USERS_ROUTES = "api/v1/users";

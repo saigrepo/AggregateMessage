@@ -1,5 +1,5 @@
 export interface AuthSlice {
-    userInfo: undefined;
+    userInfo: any;
     setUserInfo: (userInfo: (prevState) => void) => void;
 }
 

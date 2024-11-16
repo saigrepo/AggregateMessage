@@ -14,6 +14,7 @@ import {
 } from "../../redux/conversation/ConversationAction.ts";
 import {createMessage, getAllMessages} from "../../redux/message/MessageAction.ts";
 import {AUTHORIZATION_PREFIX} from "../../utils/Constants.ts";
+import {UserDTO} from "../../models/model-types.ts";
 
 function MessageArea({userInfo, currentConversation, setCurrentConversation, messages, conversationState, token, dispatch, setMessages, setSelectedContacts, selectedContacts}) {
 
@@ -73,7 +74,7 @@ function MessageArea({userInfo, currentConversation, setCurrentConversation, mes
     useEffect(() => {
         if (messageState?.newMessage && stompClient && currentConversation && isConnected) {
             const webSocketMessage: WebSocketMessageDTO = {...messageState.newMessage,
-                user: helperToDTO(messageState.newMessage.user),
+                user: helperToDTO(messageState.newMessage.user) as any,
                 conversation: {...currentConversation, users: currentConversation.users.map(user => helperToDTO(user)) }};
             stompClient.send("/app/messages", {}, JSON.stringify(webSocketMessage));
         }
@@ -148,7 +149,7 @@ function MessageArea({userInfo, currentConversation, setCurrentConversation, mes
         const lastReadMessage = messages.filter((msg) => msg.readBy.includes(userInfo.userId)).at(-1);
         if (!lastReadMessage) return 'Never seen'; // Handle case if no messages were read
 
-        const diffMins = Math.floor((new Date() - new Date(lastReadMessage.timeStamp)) / 60000); // Difference in minutes
+        const diffMins = Math.floor((new Date().getTime() - new Date(lastReadMessage.timeStamp).getTime()) / 60000); // Difference in minutes
 
         if (diffMins < 1) return 'Just now';
         if (diffMins < 60) return `${diffMins} mins`;

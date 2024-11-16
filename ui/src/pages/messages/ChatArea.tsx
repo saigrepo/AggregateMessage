@@ -23,7 +23,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
                                                messageInput
                                            }) => {
     const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-    const chatEndRef = useRef<HTMLDivElement>({});
+    const chatEndRef = useRef<HTMLDivElement>({} as HTMLDivElement);
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
