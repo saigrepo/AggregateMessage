@@ -36,11 +36,13 @@ function TelegramChatArea({messages, currentUserId, onSendMessage, messageInput,
         <div className="flex-1 overflow-y-auto p-4 bg-bg-tones-2">
             {messages.length > 0 ? (
                 messages.map((msg, idx) => (
-                    <MessageBubble
-                        key={msg?.messageId + idx}
-                        messageDate={msg.timestamp} messageId={msg?.senderId} messageContent={msg.message}
-                        currentUserId={currentUserId}
-                    />
+                    (msg.message.length > 0 &&
+                        <MessageBubble
+                            key={msg?.messageId + idx}
+                            messageDate={msg.timestamp} messageId={msg?.senderId} messageContent={msg.message}
+                            currentUserId={currentUserId}
+                        />
+                    )
                 ))
             ) : (
                 <div className="flex justify-center mt-80">No Messages. Start a conversation!</div>

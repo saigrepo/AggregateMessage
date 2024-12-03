@@ -25,7 +25,7 @@ public class SecurityConfiguration {
 
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    final String[] WHITE_LIST_URL = {"/api/v1/auth/**", "/ws/**", "/login/oauth2/**", "/api/v1/auth/oauth2/callback/google"};
+    final String[] WHITE_LIST_URL = {"/api/v1/auth/**", "/ws/**", "/login/oauth2/**", "/api/v1/auth/oauth2/callback/google", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"};
     public SecurityConfiguration(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             AuthenticationProvider authenticationProvider,

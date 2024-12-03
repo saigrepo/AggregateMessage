@@ -27,8 +27,9 @@ public class S3Service {
         this.s3client = s3client;
     }
 
-    public void uploadFile(String keyName, MultipartFile file) throws IOException {
-        var putObjectResult = s3client.putObject(bucketName, keyName, file.getInputStream(), null);
+    public String uploadFile(String keyName, MultipartFile file) throws IOException {
+        s3client.putObject(bucketName, keyName, file.getInputStream(), null);
+        return s3client.getUrl(bucketName, keyName).toString();
     }
 
     public S3Object getFile(String keyName) {

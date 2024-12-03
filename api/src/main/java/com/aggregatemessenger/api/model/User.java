@@ -52,6 +52,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private LocalDateTime updatedDate;
 
+    @Column()
+    private Boolean viaGoogle;
+
     public String getFullName() {
         return this.firstName +" "+this.lastName;
     }

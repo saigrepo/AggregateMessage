@@ -14,7 +14,6 @@ import {
 } from "../../redux/conversation/ConversationAction.ts";
 import {createMessage, getAllMessages} from "../../redux/message/MessageAction.ts";
 import {AUTHORIZATION_PREFIX} from "../../utils/Constants.ts";
-import {UserDTO} from "../../models/model-types.ts";
 
 function MessageArea({userInfo, currentConversation, setCurrentConversation, messages, conversationState, token, dispatch, setMessages, setSelectedContacts, selectedContacts}) {
 
@@ -50,12 +49,10 @@ function MessageArea({userInfo, currentConversation, setCurrentConversation, mes
 
     useEffect(() => {
         if (messageReceived && currentConversation?.id && token) {
-            console.log("fetch")
             dispatch(markConversationAsRead(currentConversation?.id, token));
             dispatch(getAllMessages(currentConversation.id, token));
         }
         if (token) {
-            console.log("fetch")
             dispatch(getUserConversations(token));
         }
         setMessageReceived(false);
@@ -81,6 +78,9 @@ function MessageArea({userInfo, currentConversation, setCurrentConversation, mes
         if(messages!=null) {
             setMessages([...messages, messageState?.newMessage]);
         }
+        if (token) {
+            dispatch(getUserConversations(token));
+        }
     }, [messageState?.newMessage]);
 
     useEffect(() => {
@@ -99,10 +99,10 @@ function MessageArea({userInfo, currentConversation, setCurrentConversation, mes
         setMessageReceived(true);
     };
 
-    const onSendMessage = (e) => {
-        console.log(newMessageContent);
+    const onSendMessage = (msg) => {
+        console.log(msg);
         if (currentConversation?.id && token) {
-            dispatch(createMessage({conversationId: currentConversation?.id, content: newMessageContent}, token));
+            dispatch(createMessage({conversationId: currentConversation?.id, content: msg}, token));
             setNewMessageContent("");
         }
     };
@@ -172,7 +172,7 @@ function MessageArea({userInfo, currentConversation, setCurrentConversation, mes
         <div className="flex flex-row w-full">
             {conversations?.length > 0 ? (
             <>
-                <Conversations conversations={conversations} onSelectConversationClick={handleOnClickOfConversation} selectedConvId={currentConversation?.id} messageTitle="Message"/>
+                <Conversations conversations={conversations} onSelectConversationClick={handleOnClickOfConversation} selectedConvId={currentConversation?.id} messageTitle="Message" setMessage={setConversations}/>
                 {currentConversation ? (
                     <div className={`flex flex-col flex-grow bg-bg-tones-4`}>
                         <div className="border-b p-4 h-[55px] flex justify-between items-center backdrop-blur-md bg-gradient-to-r from-bg-tones-4 to-bg-tones-2">

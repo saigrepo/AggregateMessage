@@ -6,6 +6,7 @@ import com.aggregatemessenger.api.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -16,6 +17,10 @@ import java.util.Optional;
 
 @Component
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+    @Value("${frontend.url}")
+    private String frontEndUrl;
+
     @Autowired
     private JwtService jwtService;
 
@@ -38,6 +43,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         }
         /// Redirect to frontend with token
         getRedirectStrategy().sendRedirect(request, response,
-                "http://localhost:5173/oauth2/redirect?token=" + token);
+                frontEndUrl + "/oauth2/redirect?token=" + token);
     }
 }

@@ -22,12 +22,21 @@ const ChatArea: React.FC<ChatAreaProps> = ({
                                                setMessageInput,
                                                messageInput
                                            }) => {
-    const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+    const [uploadedFiles, setUploadedFiles] = useState([]);
     const chatEndRef = useRef<HTMLDivElement>({} as HTMLDivElement);
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+
+    useEffect(() => {
+        console.log(uploadedFiles);
+        uploadedFiles.map(up => {
+            setMessageInput(up.trim());
+            onSendMessage(up.trim());
+        })
+    }, [uploadedFiles, setUploadedFiles]);
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();

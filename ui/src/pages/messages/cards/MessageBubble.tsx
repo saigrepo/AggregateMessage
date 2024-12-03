@@ -8,14 +8,30 @@ interface MessageBubbleProps {
     currentUserId: string;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ messageId, messageContent, messageDate, currentUserId }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+                                                         messageId,
+                                                         messageContent,
+                                                         messageDate,
+                                                         currentUserId
+                                                     }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [linkTitle, setLinkTitle] = useState<string | null>(null);
+    const [isImage, setIsImage] = useState(false);
 
     const isOwnMessage = messageId === currentUserId;
 
+    const isImageUrl = (url: string) => {
+        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 's3.amazonaws.com'];
+        return imageExtensions.some(ext => url.toLowerCase().includes(ext));
+    };
+
     const fetchLinkTitle = async (url: string) => {
         try {
+            if (isImageUrl(url)) {
+                setIsImage(true);
+                return;
+            }
+
             const response = await fetch(`http://localhost:5400/proxy?url=${encodeURIComponent(url)}`, {
                 method: "GET"
             });
@@ -31,22 +47,42 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ messageId, messageContent
 
     useEffect(() => {
         const urlRegex = /(https?:\/\/[^\s]+)/g;
-        if (urlRegex.test(messageContent)) {
-            fetchLinkTitle(messageContent);
+        const urls = messageContent.match(urlRegex);
+
+        if (urls && urls.length > 0) {
+            fetchLinkTitle(urls[0]);
         }
     }, [messageContent]);
 
     const renderMessageContent = () => {
         const urlRegex = /(https?:\/\/[^\s]+)/g;
-        if (urlRegex.test(messageContent)) {
+        const urls = messageContent.match(urlRegex);
+
+        if (urls && isImage) {
             return (
                 <a
-                    href={messageContent}
+                    href={urls[0]}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 underline hover:text-blue-700 break-words"
                 >
-                    {linkTitle || messageContent}
+                    <img
+                        src={urls[0]}
+                        alt="Uploaded Image"
+                        className="max-w-full h-auto rounded-lg"
+                    />
+                </a>
+            );
+        }
+
+        if (urls) {
+            return (
+                <a
+                    href={urls[0]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-blue-500 underline hover:text-blue-700 break-words"
+                >
+                    {linkTitle || urls[0]}
                 </a>
             );
         }
@@ -79,7 +115,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ messageId, messageContent
         <div className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} mb-4`}>
             <div
                 className={`max-w-md lg:max-w-lg px-4 py-3 rounded-lg shadow-sm ${
-                    isOwnMessage ? "bg-blue-100 text-right" : "bg-gray-100"
+                    isOwnMessage ? "#8E8ADA text-right" : "#C9C9C9"
                 }`}
                 style={{ fontSize: "16px", fontFamily: "Arial, sans-serif" }}
             >

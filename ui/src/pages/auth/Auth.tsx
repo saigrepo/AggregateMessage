@@ -6,7 +6,7 @@ import {Button} from "../../components/ui/button.tsx";
 import {loginForm, signupForm} from "../../models/model-types.ts";
 import {toast} from "sonner";
 import apiClient from "../../lib/api-client.ts";
-import {LOGIN_ROUTE, SIGNUP_ROUTE} from "../../utils/Constants.ts";
+import {HOST, LOGIN_ROUTE, SIGNUP_ROUTE} from "../../utils/Constants.ts";
 import {useNavigate} from "react-router-dom";
 import {useAppStore} from "../../slices";
 import {Simulate} from "react-dom/test-utils";
@@ -41,6 +41,7 @@ function Auth() {
         event.preventDefault();
         if(validateLogin()) {
             try {
+                console.log(HOST);
                 const loginResponse: any = await apiClient.post(LOGIN_ROUTE,
                     {"emailId": loginForm.loginEmailId, "password": loginForm.loginPassword}, {withCredentials: true});
                 const token = loginResponse.data.token;

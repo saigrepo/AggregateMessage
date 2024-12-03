@@ -19,7 +19,7 @@ const ConversationCard = ({ conv, onSelectConversationClick, userInfo, selectedC
     };
 
     const getLastMessage = (conv: ConversationDTO) => {
-        return conv.messages.length > 0 ? conv.messages.at(-1)?.content.substring(0, 35) : "";
+        return conv.messages.length > 0 ? '(' + conv.messages.at(-1)?.content.substring(0, 15) + ')..' : "";
     };
 
     const isLastMessageReadByUser = (conv: ConversationDTO) => {

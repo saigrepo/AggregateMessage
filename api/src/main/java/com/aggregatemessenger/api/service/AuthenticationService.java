@@ -30,6 +30,7 @@ public class AuthenticationService {
         newUser.setEmailId(user.getEmailId());
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
         newUser.setProfileCreated(false);
+        newUser.setViaGoogle(false);
         return userRepository.save(newUser);
     }
 
@@ -46,6 +47,7 @@ public class AuthenticationService {
             newUser.setEmailId(emailId);
             newUser.setProfileCreated(false);
             newUser.setPassword(passwordEncoder.encode(emailId));
+            newUser.setViaGoogle(true);
             userRepository.save(newUser);
             return newUser;
         }

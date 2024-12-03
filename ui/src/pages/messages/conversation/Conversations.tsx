@@ -3,7 +3,7 @@ import {Search} from 'lucide-react';
 import {useAppStore} from "../../../slices";
 import ConversationCard from "../cards/ConversationCard.tsx";
 
-const Conversations = ({ conversations, onSelectConversationClick, selectedConvId, messageTitle }) => {
+const Conversations = ({ conversations, onSelectConversationClick, selectedConvId, messageTitle, setMessage }) => {
     const {userInfo} = useAppStore();
     const [width, setWidth] = useState(300);
     const sidebarRef = useRef(null);
@@ -36,6 +36,10 @@ const Conversations = ({ conversations, onSelectConversationClick, selectedConvI
     useEffect(() => {
         setFilteredConversations(conversations);
     }, []);
+
+    useEffect(() => {
+        setFilteredConversations(conversations)
+    }, [setMessage, onSelectConversationClick]);
 
     useEffect(() => {
         window.addEventListener("mousemove", resize);

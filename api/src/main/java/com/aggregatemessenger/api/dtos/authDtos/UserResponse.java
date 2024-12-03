@@ -17,4 +17,5 @@ public class UserResponse {
     private String userColor;
     private String firstName;
     private String lastName;
+    private boolean viaGoogle;
 }

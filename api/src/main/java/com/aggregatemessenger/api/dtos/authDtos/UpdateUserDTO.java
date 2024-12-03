@@ -14,5 +14,7 @@ public class UpdateUserDTO {
     private String lastName;
     private String userColor;
     private Boolean userProfileCreated;
-
+    private Boolean viaGoogle;
+    private String password;
+    private String email;
 }

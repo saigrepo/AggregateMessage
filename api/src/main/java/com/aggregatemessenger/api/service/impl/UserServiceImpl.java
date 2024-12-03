@@ -11,20 +11,24 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -60,24 +64,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User updateUserById(UUID id, UpdateUserDTO updateUserDTO) {
-        User user = this.userRepository.findById(id).orElse(null);
-        if( user!=null) {
-            if (updateUserDTO.getUserColor()!=null) {
-                user.setProfileColor(updateUserDTO.getUserColor());
-            }
-            if (updateUserDTO.getFirstName()!=null) {
-                user.setFirstName(updateUserDTO.getFirstName());
-            }
-            if (updateUserDTO.getLastName()!=null) {
-                user.setLastName(updateUserDTO.getLastName());
-            }
-            if (updateUserDTO.getUserProfileCreated()!=null) {
-                user.setProfileCreated(updateUserDTO.getUserProfileCreated());
-            }
-        }
-        this.userRepository.save(user);
-        return user;
+    public User updateUserById(UUID id, UpdateUserDTO dto) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    Optional.ofNullable(dto.getUserColor()).ifPresent(user::setProfileColor);
+                    Optional.ofNullable(dto.getFirstName()).ifPresent(user::setFirstName);
+                    Optional.ofNullable(dto.getLastName()).ifPresent(user::setLastName);
+                    Optional.ofNullable(dto.getUserProfileCreated()).ifPresent(user::setProfileCreated);
+                    Optional.ofNullable(dto.getPassword()).ifPresent(p -> user.setPassword(passwordEncoder.encode(p)));
+                    Optional.ofNullable(dto.getEmail()).ifPresent(user::setEmailId);
+                    return userRepository.save(user);
+                })
+                .orElse(null);
     }
 
     @Override
@@ -100,7 +98,7 @@ public class UserServiceImpl implements UserService {
     public Page<UserResponse> searchContacts(String query, Pageable pageable) {
         return userRepository.findByFirstNameContainingIgnoreCase(query, pageable).map(
                 user -> {
-                    return new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstName(), user.getLastName());
+                    return new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstName(), user.getLastName(), user.getViaGoogle());
                 }
         );
     }

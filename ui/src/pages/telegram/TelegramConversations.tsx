@@ -7,7 +7,7 @@ import TelegramChatArea from "./TelegramChatArea.tsx";
 import SearchUsers from "../messages/SearchUsers.tsx";
 import Dashboard from "./Dashboard.tsx";
 
-const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
+const TelegramConversations = ({ conversations, messageTitle, dbConv, setConversations }) => {
     const {userInfo} = useAppStore();
     const [width, setWidth] = useState(300);
     const sidebarRef = useRef(null);
@@ -17,6 +17,7 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
     const [selectedConv, setSelectedConv] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    const [isDbConvLoaded, setIsDbConvLoaded] = useState(false);
 
     const socket = io("http://localhost:5400", {
         transports: ["websocket"],
@@ -49,6 +50,7 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
             setFilteredConversations(conversations);
         } else {
             if(dbConv) {
+                setIsDbConvLoaded(true);
                 setFilteredConversations((prev) => [...prev, dbConv])
             }
         }
@@ -58,10 +60,10 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
     useEffect(() => {
         if(conversations && conversations.length > 0) {
             setFilteredConversations(conversations);
-        } else {
-            setFilteredConversations(dbConv)
+        } else if(dbConv && !isDbConvLoaded) {
+            setIsDbConvLoaded(true);
+            setFilteredConversations([...dbConv])
         }
-
     }, [conversations, messages]);
 
 
@@ -89,7 +91,6 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
 
 
     useEffect(() => {
-
         if (!selectedConv) return;
 
         socket.emit('get-chat-history', selectedConv.id);
@@ -99,7 +100,6 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
                 setMessages((prev) => [...prev, message]);
             }
         };
-
         const handleChatHistory = (chatMessages) => {
             setMessages(chatMessages);
         };
@@ -122,10 +122,10 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
     }, [selectedConv]);
 
     const handleChatSelect = (chat) => {
-        if (selectedConv?.id === chat.id) return; // Prevent redundant updates
+        if (selectedConv?.id === chat.id) return;
 
         setSelectedConv(chat);
-        setMessages([]); // Clear messages temporarily while fetching new ones
+        setMessages([]);
     };
 
     const handleSendMessage = (e) => {
@@ -137,12 +137,8 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
             senderId: userInfo?.telegramId,
             timestamp: Date.now(),
         };
-
-        // Update the UI optimistically
         setMessages((prev) => [...prev, tempMessage]);
-
         socket.emit('send-message', tempMessage);
-
         setNewMessage('');
     };
 
@@ -167,6 +163,16 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
 
         return `on ${lastSeenDate.toLocaleDateString()} at ${lastSeenDate.toLocaleTimeString()}`;
     };
+
+    const handleDeleteClick = (convId) => {
+        const up = filteredConversations.filter((conv) => conv.id !== convId);
+        setFilteredConversations(up);
+        setConversations(up);
+        if (up.length > 0) {
+            handleChatSelect(up[0]);
+        }
+        console.log(up);
+    }
 
     return (
         <>
@@ -200,6 +206,7 @@ const TelegramConversations = ({ conversations, messageTitle, dbConv }) => {
                             conv={conv}
                             userInfo={userInfo}
                             selectedConvId={selectedConv?.id}
+                            handleDeleteClick={handleDeleteClick}
                         />
                     )) : <div className="flex flex-wrap justify-center font-semibold mt-40">No Conversation found for the user</div>}
                 </div>

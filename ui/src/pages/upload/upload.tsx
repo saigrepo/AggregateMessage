@@ -13,6 +13,7 @@ import ImageUpload from "./ImageUpload.tsx";
 
 export default function Upload({ onUploadedFile }) {
     const [uploadTriggered, setUploadTriggered] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleUpload = (uploadedFiles) => {
         console.log(uploadedFiles)
@@ -21,26 +22,24 @@ export default function Upload({ onUploadedFile }) {
     };
 
     useEffect(() => {
-        console.log("from effect");
-    }, [uploadTriggered, setUploadTriggered ]);
+        setIsOpen(false);
+    }, [uploadTriggered, setUploadTriggered]);
 
     return (
-        <div className="flex">
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button className="border-0 bg-transparent rounded-full p-2" variant="outline">
-                        <FaPaperclip size={25} />
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle className="text-center">Upload your files</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <ImageUpload listOfuploadfile={handleUpload} uploadTriggered={setUploadTriggered} />
-                    </div>
-                </DialogContent>
-            </Dialog>
-        </div>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button className="border-0 bg-transparent rounded-full p-2" variant="outline">
+                    <FaPaperclip size={25} />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle className="text-center">Upload your files</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <ImageUpload listOfuploadfile={handleUpload} uploadTriggered={setUploadTriggered} />
+                </div>
+            </DialogContent>
+        </Dialog>
     );
 }

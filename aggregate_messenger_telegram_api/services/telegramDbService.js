@@ -22,15 +22,17 @@ class TelegramDbService {
      async createTable() {
         const query = `
         CREATE TABLE IF NOT EXISTS tele_conversation (
-            id VARCHAR(100),
-            title VARCHAR(100),
-            last_message VARCHAR(100),
+            id VARCHAR(255) UNIQUE NOT NULL,
+            title TEXT,
+            last_message TEXT,
             date BIGINT,
             unread_count BIGINT
         );
     `;
         try {
-            await this.connect();
+            if(!this.pgClient._connected ) {
+                await this.connect();
+            }
             await this.pgClient.query(query);
             console.log("Table 'teleconversation' created or already exists");
         } catch (err) {
@@ -41,7 +43,7 @@ class TelegramDbService {
     async getConversations() {
         const query = `SELECT * FROM tele_conversation`;
         try {
-            if(!this.pgClient._connected || this.pgClient._ended) {
+            if(!this.pgClient._connected ) {
                 await this.connect();
             }
             const res = await this.pgClient.query(query);
@@ -59,28 +61,34 @@ class TelegramDbService {
 
     async insertConversation(paramList) {
         const query = `
-            INSERT INTO tele_conversation (id, title, last_message, date, unread_count) 
-            VALUES ($1, $2, $3, $4, $5) 
-            ON CONFLICT (id)
-                DO UPDATE SET
-                              last_message = EXCLUDED.last_message,
-                              unread_count = EXCLUDED.unread_count;
-        `
+    INSERT INTO tele_conversation (id, title, last_message, date, unread_count) 
+    VALUES ($1, $2, $3, $4, $5) 
+    ON CONFLICT (id)
+        DO UPDATE SET
+                      last_message = EXCLUDED.last_message,
+                      unread_count = EXCLUDED.unread_count;
+`;
         try {
             await this.createTable();
-            if(this.pgClient._ended || !this.pgClient._connected) {
+            if (!this.pgClient._connected) {
                 await this.connect();
             }
-            for(const params of paramList?.conversations) {
-                const res = await this.pgClient.query(query, [params?.id, params?.title, params?.lastMessage, params?.date, params?.unreadCount]);
+            await this.pgClient.query('BEGIN'); // Start the transaction
+            for (const params of paramList?.conversations) {
+                const res = await this.pgClient.query(query, [
+                    params?.id,
+                    params?.title,
+                    params?.lastMessage,
+                    params?.date,
+                    params?.unreadCount,
+                ]);
                 console.log("inserted", res.rows[0]);
             }
-            console.log("inserted");
+            await this.pgClient.query('COMMIT');
+            console.log("All records inserted successfully");
         } catch (err) {
+            await this.pgClient.query('ROLLBACK');
             console.error("Error Inserting Table", err.stack);
-        } finally {
-            await this.pgClient.end();
-            console.log("PostgreSQL connection closed")
         }
     }
 

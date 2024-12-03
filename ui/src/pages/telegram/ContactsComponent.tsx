@@ -8,12 +8,16 @@ import {DialogContent, DialogFooter, DialogHeader} from "../../components/ui/dia
 import {DialogTitle} from "@radix-ui/react-dialog";
 import {RiTelegramLine} from "react-icons/ri";
 import {Button} from "../../components/ui/button.tsx";
+import {RxReload} from "react-icons/rx";
+import * as Toolbar from "@radix-ui/react-toolbar";
+import {userInfo} from "os";
 
-function ContactsComponent({conversations, filtered, setFiltered, fetching, handleProceed, setLoadTeleConv, dbConv}) {
+function ContactsComponent({conversations, filtered, setFiltered, fetching, handleProceed, setLoadTeleConv, dbConv, setReloadConv}) {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [loadConv, setLoadConv] = useState<TelegramConversation[]>(conversations);
     const [searchQuery, setSearchQuery] = useState("");
+    const [stateBeforeSelect, setStateBeforeSelect] = useState([]);
     const conversationsPerPage = 5;
 
 
@@ -26,7 +30,7 @@ function ContactsComponent({conversations, filtered, setFiltered, fetching, hand
     useEffect(() => {
         setLoadConv(conversations);
         if(dbConv) {
-            setFiltered((prev) => [...prev, ...dbConv]);
+            setFiltered((prev) => [...prev, ...dbConv.map((conv) => conv.id)]);
         }
         console.log("Connecting to socket");
         socket.connect();
@@ -59,11 +63,10 @@ function ContactsComponent({conversations, filtered, setFiltered, fetching, hand
 
     const handleSelectAll = (checked) => {
         if(checked) {
-            loadConv.map((conv) => {
-                handleCheckboxChange(conv.id);
-            });
+            setStateBeforeSelect(filtered);
+            setFiltered(loadConv.map((conv) => conv.id));
         } else {
-            setFiltered([]);
+            setFiltered(stateBeforeSelect);
         }
     }
 
@@ -101,19 +104,20 @@ function ContactsComponent({conversations, filtered, setFiltered, fetching, hand
                         <>
                             <div className="flex flex-col justify-center overflow-y-auto mx-10" >
                                 <div className="my-3 mx-10 flex flex-row relative">
-                                    <Checkbox className="absolute left-[-40px] top-2.5"
-                                              key="select-all"
-                                              onCheckedChange={(checked) => handleSelectAll(checked)}
-                                    />
-                                    <Input
-                                        type="text"
-                                        placeholder="Search..."
-                                        className="w-full pl-8 pr-4 py-2 rounded-full"
-                                        id="telegram-conversation"
-                                        value={searchQuery}
-                                        onChange={handleInputChange}
-                                    />
-                                    <Search className="absolute left-2 top-2.5 text-gray-400 w-4 h-4" />
+                                    <div className="w-full max-w-sm min-w-[150px]">
+                                        <div className="relative flex items-center">
+                                            <Checkbox className="absolute w-5 h-5 left-[-40px] top-2.5"
+                                                      onCheckedChange={(checked) => handleSelectAll(checked)}
+                                            />
+                                            <Search className="absolute w-5 h-5 top-2.5 left-2.5"/>
+                                            <input
+                                                className="w-full bg-transparent rounded-md pl-10 pr-3 py-2"
+                                                          placeholder="Search..." id="telegram-conversation"
+                                                          value={searchQuery}
+                                                          onChange={handleInputChange} />
+                                            <RxReload className="relative w-5 h-5 right-[-30px] hover:animate-spin" onClick={() => setReloadConv((prev) => !prev) }/>
+                                        </div>
+                                    </div>
                                 </div>
                                 {currentConversations.map((conversation) => (
                                     <div key={conversation.id} className="flex items-center space-x-2 py-2">

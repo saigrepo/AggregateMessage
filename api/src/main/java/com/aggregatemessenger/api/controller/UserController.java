@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "${frontend.url}")
 @Slf4j
 public class UserController {
 
@@ -51,19 +51,19 @@ public class UserController {
     @GetMapping("/user")
     public ResponseEntity<UserResponse> getCurrentUser() throws Exception {
         User user = this.userService.getUserByEmail(this.userService.getCurrentUserInfo().toString());
-        return ResponseEntity.ok(new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstName(), user.getLastName()));
+        return ResponseEntity.ok(new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstName(), user.getLastName(), user.getViaGoogle()));
     }
 
     @GetMapping("/user/{email}")
     public ResponseEntity<UserResponse> getUserDetailByMail(@PathVariable String email) throws Exception {
         User user = this.userService.getUserByEmail(email);
-        return ResponseEntity.ok(new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstName(), user.getLastName()));
+        return ResponseEntity.ok(new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstName(), user.getLastName(), user.getViaGoogle()));
     }
 
     @PutMapping("/user/{userId}")
     public ResponseEntity updateUserById(@PathVariable UUID userId, @RequestBody UpdateUserDTO updateUserDTO) {
         User user = this.userService.updateUserById(userId, updateUserDTO);
-        return ResponseEntity.ok(new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstName(), user.getLastName()));
+        return ResponseEntity.ok(new UserResponse(user.getId(), user.getEmailId(), user.getProfileCreated(), user.getProfileColor(), user.getFirstName(), user.getLastName(), user.getViaGoogle()));
     }
 
     @GetMapping("/search")

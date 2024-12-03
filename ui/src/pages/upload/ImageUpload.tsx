@@ -23,8 +23,9 @@ interface FileUploadProgress {
     source: CancelTokenSource | null;
 }
 
-export default function ImageUpload({ listOfuploadfile, uploadTriggered }) {
+export default function ImageUpload({ listOfuploadfile }) {
     const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+    const [uploadedFilesPath, setUploadedFilesPath] = useState([]);
     const [filesToUpload, setFilesToUpload] = useState<FileUploadProgress[]>([]);
 
     const getFileIconAndColor = (file: File) => {
@@ -94,6 +95,8 @@ export default function ImageUpload({ listOfuploadfile, uploadTriggered }) {
             ];
         });
     }, []);
+    const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
 
     const uploadFiles = async () => {
         const fileUploadBatch = filesToUpload.map(async (fileUploadProgress) => {
@@ -101,7 +104,7 @@ export default function ImageUpload({ listOfuploadfile, uploadTriggered }) {
             formData.append("file", fileUploadProgress.file);
 
             const cancelSource = axios.CancelToken.source();
-            await apiClient.post(FILE_UPLOAD_ROUTE, formData, {
+            const resp = await apiClient.post(FILE_UPLOAD_ROUTE, formData, {
                 onUploadProgress: (progressEvent: AxiosProgressEvent) => {
                     const progress = Math.round(
                         (progressEvent.loaded / (progressEvent.total ?? 0)) * 100
@@ -117,6 +120,10 @@ export default function ImageUpload({ listOfuploadfile, uploadTriggered }) {
                 },
                 cancelToken: cancelSource.token,
             });
+            if(resp) {
+                console.log(resp);
+            }
+            setUploadedFilesPath((prevState) => [...prevState, resp.data]);
 
             setUploadedFiles((prevUploadedFiles) => [...prevUploadedFiles, fileUploadProgress.file]);
         });
@@ -124,11 +131,8 @@ export default function ImageUpload({ listOfuploadfile, uploadTriggered }) {
     };
 
     useEffect(() => {
-        console.log(uploadedFiles);
-        listOfuploadfile(uploadedFiles);
-    }, [setUploadedFiles, uploadedFiles]);
-
-    const { getRootProps, getInputProps } = useDropzone({ onDrop });
+        listOfuploadfile(uploadedFilesPath);
+    }, [setUploadedFilesPath, uploadedFilesPath]);
 
     return (
         <div>
@@ -141,7 +145,6 @@ export default function ImageUpload({ listOfuploadfile, uploadTriggered }) {
                         <div className=" border p-2 rounded-md max-w-min mx-auto">
                             <UploadCloud size={20} />
                         </div>
-
                         <p className="mt-2 text-sm text-gray-600">
                             <span className="font-semibold">Drag files</span>
                         </p>

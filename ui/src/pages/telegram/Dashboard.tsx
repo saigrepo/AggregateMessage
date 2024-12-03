@@ -12,7 +12,7 @@ import {PiUserListFill} from "react-icons/pi";
 import {toast} from "sonner";
 import axios from "axios";
 
-function Dashboard({setTelegramConv, dbConv}) {
+function Dashboard({setTelegramConv, dbConv, setFetchLatestConvs}) {
     const [isOpen, setIsOpen] = useState(false);
     const [conversations, setConversations] = useState<TelegramConversation[]>([]);
     const [fetching, setFetching] = useState(false);
@@ -68,6 +68,7 @@ function Dashboard({setTelegramConv, dbConv}) {
         const filterConv = conversations.filter((conv) => filtered.includes(conv.id));
         await insertToDb(filterConv);
         console.log(filterConv);
+        console.log("filterConv");
         setIsOpen(false);
         setTelegramConv(filterConv);
     }
@@ -121,7 +122,7 @@ function Dashboard({setTelegramConv, dbConv}) {
                 </DialogContent>
             ) : (selectLogin && !loadTeleConv) ?
                 <Login setIsOpen={setIsOpen} setLoadTeleConv={setLoadTeleConv} setSelectLogin={setSelectLogin}/>
-                : <ContactsComponent dbConv={dbConv} setLoadTeleConv={setLoadTeleConv} handleProceed={handleProceed} conversations={conversations} setFiltered={setFiltered} filtered={filtered} fetching={fetching} />
+                : <ContactsComponent setReloadConv={setFetchLatestConvs} dbConv={dbConv} setLoadTeleConv={setLoadTeleConv} handleProceed={handleProceed} conversations={conversations} setFiltered={setFiltered} filtered={filtered} fetching={fetching} />
             }
         </Dialog>
     );

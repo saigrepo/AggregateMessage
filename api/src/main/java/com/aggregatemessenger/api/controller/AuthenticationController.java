@@ -26,7 +26,7 @@ import java.util.Collections;
 
 @RequestMapping("/api/v1/auth")
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "${frontend.url}")
 public class AuthenticationController {
     private final JwtService jwtService;
     private final AuthenticationService authenticationService;
@@ -52,7 +52,7 @@ public class AuthenticationController {
 
         String jwtToken = jwtService.generateToken(authenticatedUser);
 
-        LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime(),authenticatedUser.getId(), authenticatedUser.getEmailId(), authenticatedUser.getProfileCreated(), authenticatedUser.getProfileColor(), authenticatedUser.getFirstName(), authenticatedUser.getLastName());
+        LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime(),authenticatedUser.getId(), authenticatedUser.getEmailId(), authenticatedUser.getProfileCreated(), authenticatedUser.getProfileColor(), authenticatedUser.getFirstName(), authenticatedUser.getLastName(), authenticatedUser.getViaGoogle());
 
         return ResponseEntity.ok(loginResponse);
     }
@@ -71,7 +71,7 @@ public class AuthenticationController {
         String emailId = payload.getEmail();
         User authenticatedUser = authenticationService.gAuth(emailId);
         String jwtToken = jwtService.generateToken(authenticatedUser);
-        LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime(), authenticatedUser.getId(), authenticatedUser.getEmailId(), authenticatedUser.getProfileCreated(), authenticatedUser.getProfileColor(), authenticatedUser.getFirstName(), authenticatedUser.getLastName());
+        LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime(), authenticatedUser.getId(), authenticatedUser.getEmailId(), authenticatedUser.getProfileCreated(), authenticatedUser.getProfileColor(), authenticatedUser.getFirstName(), authenticatedUser.getLastName(), authenticatedUser.getViaGoogle());
         return ResponseEntity.ok(loginResponse);
 
     }

@@ -23,6 +23,7 @@ public class LoginResponse {
     private String userColor;
     private String firstName;
     private String lastName;
+    private Boolean viaGoogle;
 
     public String getToken() {
         return token;

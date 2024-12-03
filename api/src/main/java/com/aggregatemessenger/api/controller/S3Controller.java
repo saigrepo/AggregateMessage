@@ -30,9 +30,9 @@ public class S3Controller {
 
     @PostMapping(path = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        s3Service.uploadFile(file.getOriginalFilename(), file);
+        String filePath = s3Service.uploadFile(file.getOriginalFilename(), file);
         return ResponseEntity.ok()
-                .body("File uploaded");
+                .body(filePath);
     }
 
     @GetMapping("/download/{fileName}")
