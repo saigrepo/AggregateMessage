@@ -20,6 +20,6 @@ export const CREATE_CONVERSATION_ROUTE =  `${HOST}/api/v1/conversation/create`;
 
 export const GET_CONVERSATIONS_ROUTE = `${HOST}/api/v1/conversation/convs`;
 
-export const DELETE_CONVERSATION_ROUTE = `${HOST}/api/v1/conversation`;
+export const DELETE_CONVERSATION_ROUTE = `${HOST}/api/v1/conversations/delete/`;
 
 export const AUTHORIZATION_PREFIX = 'Bearer ';

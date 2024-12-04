@@ -57,7 +57,7 @@ function App() {
             if(!userInfo?.userProfileCreated) {
                 return <Navigate to='/profile' />
             }
-            return <Navigate to='/' />
+            return <Navigate to='/MainComponent' />
         }
         return children;
     };
@@ -69,10 +69,10 @@ function App() {
             <Route path="/auth" element={
                 <AuthedRoute><Auth/></AuthedRoute>
             } />
-            <Route path="/" element={
+            <Route path="/MainComponent" element={
                 <PrivateRoute><MainComponent /></PrivateRoute>
             } />
-            <Route path="/profile_setup" element={
+            <Route path="/profile" element={
                 <PrivateRoute><Profile/></PrivateRoute>
             } />
             <Route path="*" element={<Navigate to="/auth"/>} />

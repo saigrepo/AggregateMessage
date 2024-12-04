@@ -13,7 +13,8 @@ import {
     markConversationAsRead
 } from "../../redux/conversation/ConversationAction.ts";
 import {createMessage, getAllMessages} from "../../redux/message/MessageAction.ts";
-import {AUTHORIZATION_PREFIX} from "../../utils/Constants.ts";
+import {AUTHORIZATION_PREFIX, DELETE_CONVERSATION_ROUTE} from "../../utils/Constants.ts";
+import apiClient from "../../lib/api-client.ts";
 
 function MessageArea({userInfo, currentConversation, setCurrentConversation, messages, conversationState, token, dispatch, setMessages, setSelectedContacts, selectedContacts}) {
 
@@ -168,11 +169,26 @@ function MessageArea({userInfo, currentConversation, setCurrentConversation, mes
         }
     }
 
+
+    const handleConvDelete = async (convId) => {
+        console.log('handleConvDelete: ' + convId);
+        const up = conversations.filter((conv) => conv.id !== convId);
+        try {
+            const delRes = await apiClient.delete(DELETE_CONVERSATION_ROUTE + convId, {withCredentials:true});
+            console.log(delRes);
+        } catch (e) {
+            console.error(e);
+        }
+        setConversations(up);
+        handleOnClickOfConversation(up[0]);
+    }
+
+
     return (
         <div className="flex flex-row w-full">
             {conversations?.length > 0 ? (
             <>
-                <Conversations conversations={conversations} onSelectConversationClick={handleOnClickOfConversation} selectedConvId={currentConversation?.id} messageTitle="Message" setMessage={setConversations}/>
+                <Conversations conversations={conversations} onSelectConversationClick={handleOnClickOfConversation} selectedConvId={currentConversation?.id} messageTitle="Message" setMessage={setConversations} handleConvDelete={handleConvDelete}/>
                 {currentConversation ? (
                     <div className={`flex flex-col flex-grow bg-bg-tones-4`}>
                         <div className="border-b p-4 h-[55px] flex justify-between items-center backdrop-blur-md bg-gradient-to-r from-bg-tones-4 to-bg-tones-2">

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { ConversationDTO } from "../../../redux/conversation/ConversationModel.ts";
 
-const ConversationCard = ({ conv, onSelectConversationClick, userInfo, selectedConvId, onMessageRead }) => {
+const ConversationCard = ({ conv, onSelectConversationClick, userInfo, selectedConvId, onMessageRead, deleteConv }) => {
     const [hoveredConvId, setHoveredConvId] = useState(null);
 
     const getInitials = (conv: ConversationDTO) => {
@@ -36,6 +36,7 @@ const ConversationCard = ({ conv, onSelectConversationClick, userInfo, selectedC
 
     const handleDeleteClick = (convId) => {
         console.log("deleted");
+        deleteConv(convId);
     };
 
     useEffect(() => {

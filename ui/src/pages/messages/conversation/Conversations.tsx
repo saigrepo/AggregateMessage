@@ -3,7 +3,7 @@ import {Search} from 'lucide-react';
 import {useAppStore} from "../../../slices";
 import ConversationCard from "../cards/ConversationCard.tsx";
 
-const Conversations = ({ conversations, onSelectConversationClick, selectedConvId, messageTitle, setMessage }) => {
+const Conversations = ({ conversations, onSelectConversationClick, selectedConvId, messageTitle, setMessage, handleConvDelete }) => {
     const {userInfo} = useAppStore();
     const [width, setWidth] = useState(300);
     const sidebarRef = useRef(null);
@@ -77,7 +77,6 @@ const Conversations = ({ conversations, onSelectConversationClick, selectedConvI
         );
     };
 
-
     return (
         <div
             ref={sidebarRef}
@@ -102,7 +101,7 @@ const Conversations = ({ conversations, onSelectConversationClick, selectedConvI
             </div>
             <div key='conv-div-1' className="flex-grow overflow-y-auto divide-y">
                 {(filteredConversations && filteredConversations.length > 0) ? filteredConversations.map((conv) => (
-                        <ConversationCard key={conv?.id} onMessageRead={handleMessageRead} onSelectConversationClick={onSelectConversationClick} conv={conv} userInfo={userInfo} selectedConvId={selectedConvId} />
+                        <ConversationCard key={conv?.id} onMessageRead={handleMessageRead} onSelectConversationClick={onSelectConversationClick} conv={conv} userInfo={userInfo} selectedConvId={selectedConvId} deleteConv={handleConvDelete} />
                     )) : <div className="flex items-center justify-center font-semibold">No Conversation found for the user</div>}
             </div>
             <div
